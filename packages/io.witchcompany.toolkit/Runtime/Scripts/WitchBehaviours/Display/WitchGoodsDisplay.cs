@@ -31,9 +31,9 @@ namespace WitchCompany.Toolkit.Module
 #if UNITY_EDITOR
         public override ValidationError ValidationCheck()
         {
-            if (!TryGetComponent(out Collider _))
+            if (!DisplayAsset.TryGetComponent(out Collider _))
                 return new ValidationError("전시 에셋에 Collider가 있어야 합니다.", context: DisplayAsset);
-            if (!TryGetComponent(out Collider _))
+            if (!DisplayShelf.TryGetComponent(out Collider _))
                 return new ValidationError("전시대에 Collider가 있어야 합니다.", context: DisplayShelf);
             if (string.IsNullOrWhiteSpace(TargetUrl)) return Error("targetUrl이 비어있습니다.");
             
