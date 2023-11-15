@@ -53,7 +53,7 @@ namespace WitchCompany.Toolkit.Editor.Configs
         //         return 72;
         //     }
         // }
-        public static string WitchToolkitVersion => "0.2.22";
+        public static string WitchToolkitVersion => "0.2.23";
 
         /// <summary> 문서 url </summary>
         public const string WitchToolkitDocumentUrl = "https://github.com/witchcompany/witchworld-unity/tree/main/packages/io.witchcompany.toolkit";
