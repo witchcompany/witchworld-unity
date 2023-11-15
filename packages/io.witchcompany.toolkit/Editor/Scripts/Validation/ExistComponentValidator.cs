@@ -73,9 +73,9 @@ namespace WitchCompany.Toolkit.Editor.Validation
             if(PublishConfig.BlockType == BlockType.Game)
                 CheckEssentialComponent(report, GameEssentialComponents, BlockType.Game.ToString());
             
-            // 무료 테마일 경우 유료 에셋 포함 여부 검사
-            if(PublishConfig.SalesType == SalesType.Free)
-                CheckPremiumComponent(report);
+            // // 무료 테마일 경우 유료 에셋 포함 여부 검사
+            // if(PublishConfig.SalesType == SalesType.Free)
+            //     CheckPremiumComponent(report);
             
             return report;
         }

@@ -76,8 +76,8 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 }
             };
             
-            labelTextStyle = EditorStyles.label;
-            labelTextStyle.fixedWidth = 120;
+            // labelTextStyle = EditorStyles.label;
+            // labelTextStyle.fixedWidth = 120;
         }
 
         private static GUIContent[] defalutToolbarLabels = new GUIContent[4]
