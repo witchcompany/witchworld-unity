@@ -19,8 +19,9 @@ namespace WitchCompany.Toolkit.Module
         [field: Header("판매 URL")] 
         [field: SerializeField] public string TargetUrl { get; private set; }
         
-        [field: Header("구매한 아이템 전시 이벤트")]
+        [field: Header("전시 이벤트")]
         [field: SerializeField] public UnityEvent OnDisplayEvent { get; private set; }
+        [field: SerializeField] public UnityEvent OnHideDisplayEvent { get; private set; }
         
         [field: Header("전시 에셋")]
         [field: SerializeField] public GameObject DisplayAsset { get; private set; }
