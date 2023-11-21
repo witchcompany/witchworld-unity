@@ -15,24 +15,23 @@ namespace WitchCompany.Toolkit.Module
         public override string DocumentURL => "";
         
         [Header("Index")]
-        [SerializeField, ReadOnly] private int index;
+        [SerializeField, ReadOnly] public int Index;
         
         [Header("미디어 타입")]
-        [field: SerializeField] private MediaType MediaType;
+        [field: SerializeField] public MediaType MediaType;
 
         [Header("미디어가 그려질 랜더러")]
-        [field: SerializeField] private Renderer MediaRenderer;
+        [field: SerializeField] public Renderer MediaRenderer;
 
         [Header("미디어가 없을 때 보여줄 오브젝트")]
-        [field: SerializeField] private GameObject NonObject;
+        [field: SerializeField] public GameObject NonObject;
         
         
         [Header("크래프팅 아이템 정보")]
-        [field: SerializeField] private string ItemName;
-        [field: SerializeField] private JLanguageString ItemDescription;
-        [field: SerializeField] private bool IsPrivate;
+        [field: SerializeField] public string ItemName;
+        [field: SerializeField] public JLanguageString ItemDescription;
+        [field: SerializeField] public bool IsPrivate;
         
-
         [System.Serializable]
         public class JLanguageString
         {
@@ -61,7 +60,7 @@ namespace WitchCompany.Toolkit.Module
             return base.ValidationCheck();
         }
         
-        public void Editor_SetIndex(int idx) => index = idx;
+        public void Editor_SetIndex(int idx) => Index = idx;
 #endif
         
     }
