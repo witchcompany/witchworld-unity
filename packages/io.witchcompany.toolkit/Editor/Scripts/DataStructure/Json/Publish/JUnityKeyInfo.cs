@@ -3,8 +3,9 @@
 namespace WitchCompany.Toolkit.Editor.DataStructure
 {
     [System.Serializable]
-    public class JUnityKeyData
+    public class JUnityKeyInfo
     {
+        public int unityKeyId;
         public string pathName;
         public string theme;
         public int capacity;

@@ -20,10 +20,15 @@ namespace WitchCompany.Toolkit.Editor.Configs
         private const string Prefs_Quantity = "publish_quantity";
         private const string Prefs_Price = "publish_price";
         private const string Prefs_Collection = "publish_collection";
+        private const string Prefs_ItemCA = "publish_itemCA";
+        private const string Prefs_ItemLocationId = "publish_item_location_id";
+        
         private const string Prefs_Name_Ko = "publish_name_ko";
         private const string Prefs_Name_En = "publish_name_en";
         private const string Prefs_Description_Ko = "publish_description_ko";
         private const string Prefs_Description_En = "publish_description_en";
+        
+        
         
         public static SceneAsset Scene
         {
@@ -86,10 +91,10 @@ namespace WitchCompany.Toolkit.Editor.Configs
             set => EditorPrefs.SetInt(Prefs_Price, value);
         }
         
-        public static CollectionType Collection
+        public static int Collection
         {
-            get => (CollectionType)EditorPrefs.GetInt(Prefs_Collection, 0);
-            set => EditorPrefs.SetInt(Prefs_Collection, (int)value);
+            get => EditorPrefs.GetInt(Prefs_Collection, 0);
+            set => EditorPrefs.SetInt(Prefs_Collection, value);
         }
         
         public static string NameKo
@@ -114,6 +119,18 @@ namespace WitchCompany.Toolkit.Editor.Configs
         {
             get => EditorPrefs.GetString(Prefs_Description_En, "");
             set => EditorPrefs.SetString(Prefs_Description_En, value);
+        }
+
+        public static string ItemCa
+        {
+            get => EditorPrefs.GetString(Prefs_ItemCA, "");
+            set => EditorPrefs.SetString(Prefs_ItemCA, value);
+        }
+        
+        public static int ItemLocationId
+        {
+            get => EditorPrefs.GetInt(Prefs_ItemLocationId, 0);
+            set => EditorPrefs.SetInt(Prefs_ItemLocationId, value);
         }
     }
 }

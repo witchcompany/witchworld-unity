@@ -5,7 +5,7 @@ namespace WitchCompany.Toolkit.Editor.DataStructure
     [System.Serializable]
     public class JBundleInfo
     {
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int bundleId;
         public string bundleType;
         public string unityVersion;
         public string toolkitVersion;

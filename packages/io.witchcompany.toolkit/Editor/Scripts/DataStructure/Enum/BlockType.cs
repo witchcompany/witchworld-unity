@@ -5,6 +5,8 @@
         Social,
         Game,
         Store,
-        Brand
+        Brand,
+        Collection,
+        Concert
     }
 }
