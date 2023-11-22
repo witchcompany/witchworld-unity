@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
-using WitchCompany.Toolkit.Module;
 using WitchCompany.Toolkit.Validation;
 
-namespace WitchCompany.Toolkit
+namespace WitchCompany.Toolkit.Module
 {
     public class WitchDisplayBgm : WitchBehaviour
     {
