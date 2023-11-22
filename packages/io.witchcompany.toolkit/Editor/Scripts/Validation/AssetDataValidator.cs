@@ -99,6 +99,8 @@ namespace WitchCompany.Toolkit.Editor.Validation
         {
             GetAssetData();
 
+            if (details == null) return null;
+            
             foreach (var detail in details)
             {
                 assetData[detail.unityKeyType].unityKeyDetailId = detail.unityKeyDetailId;

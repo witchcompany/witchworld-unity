@@ -94,7 +94,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 if (PublishConfig.Capacity < 1) PublishConfig.Capacity = 1;
                 if (PublishConfig.Capacity > 20) PublishConfig.Capacity = 20;
             
-                GUILayout.Label("1~20", CustomWindow.LabelTextStyle);
+                // GUILayout.Label("1~20", CustomWindow.LabelTextStyle);
             }
             
             // 공식 여부
@@ -275,10 +275,14 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 // 유니티 키 에셋 개수 정보 업데이트
                 // todo : 현재 데이터랑 비교해서 추가까지??
                 var unityKeyDetails = AssetDataValidator.GetUnityKeyDetails(curUnityKey.blockData.unityKeyDetail);
-                var detailResult = await WitchAPI.UpdateUnityKeyDetail(unityKeyId, unityKeyDetails);
+                if (unityKeyDetails != null)
+                {
+                    var detailResult = await WitchAPI.UpdateUnityKeyDetail(unityKeyId, unityKeyDetails);
+                    if (!detailResult)
+                        throw new Exception("유니티 키 에셋 개수 업데이트 실패!");
+                }
+                
 
-                if (!detailResult)
-                    throw new Exception("유니티 키 에셋 개수 업데이트 실패!");
                 
                 // 유니티 키 게임 랭킹 키 업데이트
                 if (PublishConfig.BlockType == BlockType.Game)
