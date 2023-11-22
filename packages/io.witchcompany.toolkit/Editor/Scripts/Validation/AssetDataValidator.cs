@@ -32,6 +32,12 @@ namespace WitchCompany.Toolkit.Editor.Validation
             {"beggingBooth", beggingBooth}
         };
         
+        private static void Initialize()
+        {
+            foreach (var key in assetData.Keys.ToList())
+                assetData[key].count = 0;
+        }
+        
         public static Dictionary<string, JUnityKeyDetail> GetAssetData()
         {
             Initialize();
@@ -50,18 +56,13 @@ namespace WitchCompany.Toolkit.Editor.Validation
                     else if (displayFrame.MediaType == MediaType.Video)
                         video.count++;
                 }
-                //자유배치 에셋
+                //자유 배치 에셋
                 if (transform.TryGetComponent(out WitchFreeDisplay freeDisplay))
-                {
-                    //art.count++;
                     freeArt.count++;
-                }
 
                 //가판대 에셋
                 if (transform.TryGetComponent(out WitchStallDisplay stallDisplay))
-                {
                     stall.count++;
-                }
                 
                 // 낙서장
                 if (transform.TryGetComponent(out WitchPaintWall paintWall))
@@ -84,14 +85,26 @@ namespace WitchCompany.Toolkit.Editor.Validation
                         beggingBooth.count++;
                 }
             }
-            
             return assetData;
         }
 
-        private static void Initialize()
+        public static List<JUnityKeyDetail> GetUnityKeyDetails()
         {
-            foreach (var key in assetData.Keys.ToList())
-                assetData[key].count = 0;
+            GetAssetData();
+
+            return assetData.Values.Where(asset => asset.count > 0).ToList();
+        }
+        
+        public static List<JUnityKeyDetail> GetUnityKeyDetails(List<JUnityKeyDetail> details)
+        {
+            GetAssetData();
+
+            foreach (var detail in details)
+            {
+                assetData[detail.unityKeyType].unityKeyDetailId = detail.unityKeyDetailId;
+            }
+            
+            return assetData.Values.Where(asset => asset.count > 0).ToList();
         }
     }
 }

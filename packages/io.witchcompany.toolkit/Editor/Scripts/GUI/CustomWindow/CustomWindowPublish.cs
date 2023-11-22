@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
@@ -9,7 +10,9 @@ using WitchCompany.Toolkit.Editor.API;
 using WitchCompany.Toolkit.Editor.Configs;
 using WitchCompany.Toolkit.Editor.DataStructure;
 using WitchCompany.Toolkit.Editor.Tool;
+using WitchCompany.Toolkit.Editor.Validation;
 using WitchCompany.Toolkit.Module;
+using WitchCompany.Toolkit.Scripts.WitchBehaviours.Interface;
 
 namespace WitchCompany.Toolkit.Editor.GUI
 {
@@ -84,133 +87,360 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 }
             } 
             
-            // 테마
-            var blockTheme = (BlockType)EditorGUILayout.EnumPopup("Block Type", PublishConfig.BlockType);
-            PublishConfig.BlockType = blockTheme;
-            
-            // 게임 블록 난이도
-            if (PublishConfig.BlockType == BlockType.Game)
-            {
-                var blockLevel = (GameLevel)EditorGUILayout.EnumPopup("Level", PublishConfig.Level);
-                PublishConfig.Level = blockLevel;
-            }
-
-            // 가격 
+            // 인원 
             using (new EditorGUILayout.HorizontalScope())
             {
                 PublishConfig.Capacity = EditorGUILayout.IntField("Capacity ", PublishConfig.Capacity);
                 if (PublishConfig.Capacity < 1) PublishConfig.Capacity = 1;
                 if (PublishConfig.Capacity > 20) PublishConfig.Capacity = 20;
-
-                // GUILayout.Label("1~20", CustomWindow.LabelTextStyle);
+            
+                GUILayout.Label("1~20", CustomWindow.LabelTextStyle);
             }
             
             // 공식 여부
             PublishConfig.Official = EditorGUILayout.Toggle("Official", PublishConfig.Official);
             
-            // // 컬렉션
-            // PublishConfig.Collection = (CollectionType)EditorGUILayout.EnumPopup("Collection", PublishConfig.Collection);
-            //
-            // // 가격 
-            // using (new EditorGUILayout.HorizontalScope())
-            // {
-            //     PublishConfig.Price = EditorGUILayout.IntField("Price ", PublishConfig.Price);
-            //     if (PublishConfig.Price < 0) PublishConfig.Price = 0;
-            //     if (PublishConfig.Price > 100000000) PublishConfig.Price = 100000000;
-            //
-            //     GUILayout.Label("0~100,000,000", CustomWindow.LabelTextStyle);
-            // }
-            //
-            // // 수량
-            // using (new EditorGUILayout.HorizontalScope())
-            // {
-            //     PublishConfig.Quantity = EditorGUILayout.IntField("Quantity", PublishConfig.Quantity);
-            //     if (PublishConfig.Quantity < 1) PublishConfig.Quantity = 1;
-            //     if (PublishConfig.Quantity > 10000) PublishConfig.Quantity = 10000;
-            //
-            //     GUILayout.Label("1~10,000",CustomWindow.LabelTextStyle);
-            // }
-
-            //
-            // // 이름(ko)
-            // PublishConfig.NameKo = EditorGUILayout.TextField("Name (ko)", PublishConfig.NameKo);
-            // // 이름(en)
-            // PublishConfig.NameEn = EditorGUILayout.TextField("Name (en)", PublishConfig.NameEn);    
-            // // 설명 (ko)
-            // PublishConfig.DescriptionKo = EditorGUILayout.TextField("Description (ko)", PublishConfig.DescriptionKo);
-            // // 설명 (en)
-            // PublishConfig.DescriptionEn = EditorGUILayout.TextField("Description (en)", PublishConfig.DescriptionEn);
+            // 테마
+            var blockTheme = (BlockType)EditorGUILayout.EnumPopup("Block Type", PublishConfig.BlockType);
+            PublishConfig.BlockType = blockTheme;
+            
+            
+            // 테마 타입에 따른 옵션 
+            EditorGUI.indentLevel++;
+            switch (PublishConfig.BlockType)
+            {
+                case BlockType.Game :
+                    var blockLevel = (GameLevel)EditorGUILayout.EnumPopup("Level", PublishConfig.Level);
+                    PublishConfig.Level = blockLevel;
+                    break;
+                case BlockType.Collection :
+                    PublishConfig.Collection = EditorGUILayout.IntField("Collection", PublishConfig.Collection);
+                    break;
+                case BlockType.Concert:
+                    PublishConfig.ItemCa = EditorGUILayout.TextField("ItemCA", PublishConfig.ItemCa);
+                    PublishConfig.ItemLocationId = EditorGUILayout.IntField("Item Location Id", PublishConfig.ItemLocationId);
+                    break;
+                default: break;
+            }
+            EditorGUI.indentLevel--;
             
             EditorGUILayout.EndVertical();
         }
 
+        /// <summary>
+        /// Publish 버튼 클릭 후 실행되는 함수
+        /// - Scene 번들 추출
+        /// - 유니티 키 업로드
+        /// - 업로드 결과 표시
+        /// </summary>
         private static async UniTaskVoid OnClickPublish()
-        { 
-            // 업로드 권한 확인
-            var permission = await WitchAPI.CheckPermission();
-                
-            if (permission < 0)
+        {
+            try
             {
-                var permissionMsg = permission > -2 ? AssetBundleConfig.AuthMsg : AssetBundleConfig.PermissionMsg;
-                EditorUtility.DisplayDialog("Witch Creator Toolkit", permissionMsg, "OK");
-                return;
+                // 썸네일 지정 확인
+                if (string.IsNullOrEmpty(PublishConfig.ThumbnailPath))
+                {
+                    EditorUtility.DisplayDialog("Witch Creator Toolkit", AssetBundleConfig.ThumbnailMsg, "OK");
+                    return;
+                }
+            
+                // 입력 제한 실행
+                CustomWindow.IsInputDisable = true;
+            
+                // 번들 추출
+                buildReport = WitchToolkitPipeline.PublishWithValidation(GetOption());
+            
+                if (buildReport.result == JBuildReport.Result.Success)
+                {
+                    EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Uploading to server...", 1.0f);
+            
+                    // 번들 업로드
+                    var result = await UploadBundle();
+                    var resultMsg = result ? AssetBundleConfig.SuccessMsg : AssetBundleConfig.FailedPublishMsg; 
+                    
+                    EditorUtility.DisplayDialog("Witch Creator Toolkit", resultMsg, "OK");
+                    EditorUtility.ClearProgressBar();
+                }
             }
-
-            // 썸네일 확인
-            if (string.IsNullOrEmpty(PublishConfig.ThumbnailPath))
+            catch (Exception e)
             {
-                EditorUtility.DisplayDialog("Witch Creator Toolkit", AssetBundleConfig.ThumbnailMsg, "OK");
-                return;
+                Debug.LogException(e);
             }
             
-            // 입력 제한
-            CustomWindow.IsInputDisable = true;
-            // 번들 추출
-            buildReport = WitchToolkitPipeline.PublishWithValidation(GetOption());
-                
-            if (buildReport.result == JBuildReport.Result.Success)
-            {
-                // 업로드
-                EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Uploading to server...", 1.0f);
-                    
-                var result = await UploadBundle();
-                var resultMsg = result > 0 ? AssetBundleConfig.SuccessMsg : result > -2 ? AssetBundleConfig.FailedPublishMsg : AssetBundleConfig.DuplicationPublishMsg;
-                    
-                EditorUtility.DisplayDialog("Witch Creator Toolkit", resultMsg, "OK");
-                EditorUtility.ClearProgressBar();
-            }   
-            // 입력 제한 해제
+            // 입력 제한 해제 
             CustomWindow.IsInputDisable = false;
         }
         
-        private static async UniTask<int> UploadBundle()
+        /// <summary>
+        /// 유니티 키 업로드
+        /// </summary>
+        /// <returns></returns>
+        private static async UniTask<bool> UploadBundle()
         {
             var option = GetOption();
-            var rankingKey = GetRankingKey();
-            
-            var bundleInfos = new List<JBundleInfo>();
-            foreach (var bundleType in bundleTypes)
-            {
-                var bundleInfo = new JBundleInfo();
-                var manifestPath = Path.Combine(AssetBundleConfig.BundleExportPath, bundleType, option.BundleKey);
-                var crc = AssetBundleTool.ReadManifest(manifestPath);
-                if (crc != null)
-                {
-                    bundleInfo.bundleType = bundleType;
-                    bundleInfo.unityVersion = ToolkitConfig.UnityVersion;
-                    bundleInfo.toolkitVersion = ToolkitConfig.WitchToolkitVersion;
-                    bundleInfo.crc = crc;
-                }
-                bundleInfos.Add(bundleInfo);
-            }
 
-            Debug.Log(JsonConvert.SerializeObject(bundleInfos, Formatting.Indented));
+            // 유니티 키 조회
+            var curUnityKey = await WitchAPI.GetUnityKey(option.Key);
+
+            var result = false;
+            // 유니티 키 없을 경우 생성
+            if (curUnityKey == null)
+            {
+                result = await CreateUnityKey(option);
             
-            var response = await WitchAPI.UploadBundle(option, bundleInfos, rankingKey);
+                Debug.Log($"유니티 키 생성 결과 : {result}");
+            }
+            // 유니티 키 존재할 경우 수정
+            else
+            {
+                result = await UpdateUnityKey(curUnityKey, option);
+                Debug.Log($"유니티 키 수정 결과 : {result}");
+            }
             
             DeleteBundleFile(option);
             
-            return response;
+            return result;
+        }
+        
+        /// <summary>
+        /// 유니티 키 생성
+        /// </summary>
+        /// <param name="option"></param>
+        /// <returns></returns>
+        private static async UniTask<bool> CreateUnityKey(BlockPublishOption option)
+        {
+            // 썸네일
+            var thumbnail = await FileTool.GetByte(PublishConfig.ThumbnailPath); 
+            // 번들 정보 및 파일 
+            var bundleData = await GetBundleData(null, option.BundleKey);
+            // 게임 랭킹 키
+            var rankingKey = GetRankingKey(null);
+            // 에셋 개수 정보
+            var details = AssetDataValidator.GetUnityKeyDetails();
+            // 컬렉션 배치 아이템 정보
+            var collectionData = GetCollectionData();
+            // 콘서트 배치 아이템 정보
+            var concertData = GetConcertData();
+            
+            var newKey = new JUnityKey
+            {
+                blockData = new JUnityKeyInfo
+                {
+                    pathName = option.Key,
+                    theme = option.blockType.ToString().ToLower(),
+                    capacity = PublishConfig.Capacity,
+                    isOfficial = PublishConfig.Official ? 1 : 0,
+                    isPrivate = option.blockType == BlockType.Brand,
+                    gameUnityKey = rankingKey,
+                    unityKeyDetail = details,
+                },
+                bundleInfoList = bundleData.bundleInfos,
+                collectionBundleData = collectionData,
+                concertBundleData = concertData,
+            };
+            
+            var result = await WitchAPI.CreateUnityKey(newKey, bundleData.bundleBytes, thumbnail, option);
+            
+            return result != null;
+        }
+
+        /// <summary>
+        /// 유니티 키 수정
+        /// </summary>
+        /// <param name="curUnityKey"></param>
+        /// <param name="option"></param>
+        /// <returns></returns>
+        private static async UniTask<bool> UpdateUnityKey(JUnityKey curUnityKey, BlockPublishOption option)
+        {
+            var isSuccess = false;
+            var unityKeyId = curUnityKey.unityKeyId;
+
+            try
+            {
+                // 번들 업데이트
+                var bundleData = await GetBundleData(curUnityKey.bundleInfoList, option.BundleKey);
+                var bundleResult = await WitchAPI.UpdateBundle(unityKeyId, option.BundleKey,
+                    bundleData.bundleInfos, bundleData.bundleBytes);
+
+                if (bundleResult == null)
+                    throw new Exception("번들 업데이트 실패!");
+                
+                // 썸네일 변경
+                var thumbnail = await FileTool.GetByte(PublishConfig.ThumbnailPath);
+                var thumbnailResult = await WitchAPI.UpdateThumbnail(unityKeyId, option, thumbnail);
+
+                if (!thumbnailResult)
+                    throw new Exception("썸네일 업데이트 실패");
+                
+                // 유니티 키 에셋 개수 정보 업데이트
+                // todo : 현재 데이터랑 비교해서 추가까지??
+                var unityKeyDetails = AssetDataValidator.GetUnityKeyDetails(curUnityKey.blockData.unityKeyDetail);
+                var detailResult = await WitchAPI.UpdateUnityKeyDetail(unityKeyId, unityKeyDetails);
+
+                if (!detailResult)
+                    throw new Exception("유니티 키 에셋 개수 업데이트 실패!");
+                
+                // 유니티 키 게임 랭킹 키 업데이트
+                if (PublishConfig.BlockType == BlockType.Game)
+                {
+                    var rankingKey = GetRankingKey(curUnityKey.blockData.gameUnityKey);
+                    var rankingKeyResult = await WitchAPI.UpdateRankingKey(unityKeyId, rankingKey);
+
+                    if (!rankingKeyResult) 
+                        throw new Exception("유니티 키 랭킹 키 업데이트 실패!");
+                }
+                
+                // 유니티 콘서트, 컬렉션 정보 업데이트
+                if (PublishConfig.BlockType == BlockType.Collection)
+                {
+                    // 컬렉션 배치 아이템 정보
+                    var collectionData = GetCollectionData();
+                    if(collectionData == null)
+                        throw new Exception("컬렉션에 필요한 툴킷 설정 없음!");
+                    
+                    var result = await WitchAPI.UpdateCollectionAndConcert(unityKeyId, collectionData, null);
+
+                    if (result == null)
+                        throw new Exception("유니티 키 컬렉션 업데이트 실패!");
+                }
+                if (PublishConfig.BlockType == BlockType.Concert)
+                {
+                    // 콘서트 배치 아이템 정보
+                    var concertData = GetConcertData();
+                    var result = await WitchAPI.UpdateCollectionAndConcert(unityKeyId, null, concertData);
+
+                    if (result == null)
+                        throw new Exception("유니티 키 콘서트 배치 정보 업데이트 실패!");
+                }
+
+                isSuccess = true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+
+            return isSuccess;
+        }
+        
+
+        /// <summary>
+        /// 번들 정보 및 번들 파일 얻기
+        /// </summary>
+        /// <param name="bundleKey"></param>
+        /// <returns></returns>
+        private static async UniTask<(List<JBundleInfo> bundleInfos, Dictionary<string, byte[]> bundleBytes)> GetBundleData(List<JBundleInfo> bundleInfos, string bundleKey)
+        {
+            // 번들 정보
+            if (bundleInfos == null)
+                bundleInfos = CreateBundleInfos(bundleKey);
+            else
+                UpdateBundleInfos(bundleInfos, bundleKey);
+
+            // 번들 파일
+            var bundlePaths = new Dictionary<string, string>
+            {
+                { AssetBundleConfig.Standalone, Path.Combine(AssetBundleConfig.BundleExportPath, AssetBundleConfig.Standalone, bundleKey) },
+                { AssetBundleConfig.Webgl, Path.Combine(AssetBundleConfig.BundleExportPath, AssetBundleConfig.Webgl, bundleKey) },
+                { AssetBundleConfig.WebglMobile, Path.Combine(AssetBundleConfig.BundleExportPath, AssetBundleConfig.WebglMobile, bundleKey) },
+                { AssetBundleConfig.Android, Path.Combine(AssetBundleConfig.BundleExportPath, AssetBundleConfig.Android, bundleKey) },
+                { AssetBundleConfig.Ios, Path.Combine(AssetBundleConfig.BundleExportPath, AssetBundleConfig.Ios, bundleKey) }
+            };
+
+            var bundleDict = new Dictionary<string, byte[]>();
+            foreach (var (type, path) in bundlePaths)
+            {
+                var bundleBytes = await FileTool.GetByte(path);
+                bundleDict.Add(type, bundleBytes);
+            }
+            
+            return (bundleInfos, bundleDict);
+        }
+
+        private static void UpdateBundleInfos(List<JBundleInfo> bundleInfos, string bundleKey)
+        {
+            foreach (var bundleType in bundleTypes)
+            {
+                var index = bundleInfos.FindIndex(info => info.bundleType == bundleType);
+
+                UpdateBundleInfo(bundleInfos[index], bundleType, bundleKey);
+            }
+        }
+
+        private static List<JBundleInfo> CreateBundleInfos(string bundleKey)
+        {
+            var newBundleInfos = new List<JBundleInfo>();
+    
+            foreach (var bundleType in bundleTypes)
+            {
+                var bundleInfo = new JBundleInfo();
+                UpdateBundleInfo(bundleInfo, bundleType, bundleKey);
+                newBundleInfos.Add(bundleInfo);
+            }
+
+            return newBundleInfos;
+        }
+        
+        private static void UpdateBundleInfo(JBundleInfo bundleInfo, string bundleType, string bundleKey)
+        {
+            var manifestPath = Path.Combine(AssetBundleConfig.BundleExportPath, bundleType, bundleKey);
+            var crc = AssetBundleTool.ReadManifest(manifestPath);
+            
+            if (crc == null) return;
+            
+            bundleInfo.bundleType = bundleType;
+            bundleInfo.unityVersion = ToolkitConfig.UnityVersion;
+            bundleInfo.toolkitVersion = ToolkitConfig.WitchToolkitVersion;
+            bundleInfo.crc = crc;
+        }
+        
+
+        private static JCollectionData GetCollectionData()
+        {
+            // 컬렉션 테마가 아닐 경우 종료
+            if (PublishConfig.BlockType != BlockType.Collection) return null;
+            
+            var scene = SceneManager.GetActiveScene();
+            var rootObjects = scene.GetRootGameObjects();
+
+            if (!rootObjects[0].TryGetComponent<WitchBlockManager>(out var manager))
+                return null;
+            
+            // 컬렉션 테마에 자동 배치될 아이템 정보 설정
+            var blockLocationInfos = new List<JBlockLocationInfo>();
+            
+            // 매니저의 behaviour에서 iCollection 가져오기
+            foreach (var behaviour in manager.Behaviours)
+            {
+                if (behaviour.TryGetComponent<ICollectionDisplay>(out var collection))
+                {
+                    var salesId = ToolkitConfig.DeveloperMode ? collection.SalesItemIdDev : collection.SalesItemId;
+                    var info = new JBlockLocationInfo
+                    {
+                        salesItemId = salesId,
+                        blockLocationId = collection.BlockLocationId,
+                    };
+                    blockLocationInfos.Add(info);
+                }
+            }
+
+            return new JCollectionData
+            {
+                collectionId = PublishConfig.Collection,
+                blockLocationInfos = blockLocationInfos,
+            };
+        }
+
+        private static JBlockLocationInfo GetConcertData()
+        {
+            // 콘서트 테마가 아닐 경우 종료
+            if (PublishConfig.BlockType != BlockType.Concert) return null;
+            
+            return new JBlockLocationInfo
+            {
+                itemCa = PublishConfig.ItemCa,
+                blockLocationId = PublishConfig.ItemLocationId
+            };
         }
         
         public static BlockPublishOption GetOption()
@@ -218,11 +448,11 @@ namespace WitchCompany.Toolkit.Editor.GUI
             return new BlockPublishOption
             {
                 targetScene = PublishConfig.Scene,
-                type = PublishConfig.BlockType,
+                blockType = PublishConfig.BlockType,
             };
         }
 
-        private static JRankingKey GetRankingKey()
+        private static JRankingKey GetRankingKey(JRankingKey curRankingKey)
         {
             // 테마가 게임이 아닐 경우
             if (PublishConfig.BlockType != BlockType.Game) return null;
@@ -236,12 +466,12 @@ namespace WitchCompany.Toolkit.Editor.GUI
             var rankingKey = dataManager.RankingKeys[0];
             return new JRankingKey
             {
+                gameInfoId = curRankingKey?.gameInfoId ?? 0,
                 level = PublishConfig.Level.ToString().ToLower(),
                 key = rankingKey.key,
                 sortType = rankingKey.alignment.ToString().ToLower(),
                 dataType = rankingKey.dataType.ToString().ToLower()
             };
-            
         }
 
         private static void DeleteBundleFile(BlockPublishOption option)

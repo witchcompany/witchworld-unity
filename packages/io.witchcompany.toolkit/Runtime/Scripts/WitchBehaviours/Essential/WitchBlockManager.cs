@@ -94,7 +94,10 @@ namespace WitchCompany.Toolkit.Module
 
             var publicPaintCount = 0;
             var boothCount = 0;            
-            var beggingCount = 0;            
+            var beggingCount = 0;
+            var craftingCount = 0;
+            var specificCount = 0;
+
             
             foreach (var behaviour in behaviours)
             {
@@ -141,6 +144,20 @@ namespace WitchCompany.Toolkit.Module
                 {
                     var begging = (WitchBegging)behaviour;
                     begging.Editor_SetIndex(beggingCount++);
+                }
+                
+                // Crafting Display 카운딩
+                if (type == typeof(WitchCraftingDisplay))
+                {
+                    var craftingDisplay = (WitchCraftingDisplay)behaviour;
+                    craftingDisplay.Editor_SetIndex(craftingCount++);
+                }
+
+                // Specific Display 카운딩
+                if (type == typeof(WitchSpecificDisplay))
+                {
+                    var display = (WitchSpecificDisplay)behaviour;
+                    display.Editor_SetIndex(specificCount++);
                 }
             }
             

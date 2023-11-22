@@ -1,9 +1,11 @@
+using UnityEngine.Serialization;
+
 namespace WitchCompany.Toolkit.Editor.DataStructure.Admin
 {
     [System.Serializable]
     public class JUnityKey
     {
-        public JBundle bundles;
+        [FormerlySerializedAs("bundles")] public DataStructure.JUnityKey unityKeys;
         public string[] platform;
         public string creatorNickName;
         public string pathName;

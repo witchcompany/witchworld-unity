@@ -13,11 +13,18 @@ using WitchCompany.Toolkit.Editor.DataStructure.Admin;
 using WitchCompany.Toolkit.Editor.DataStructure.Item;
 using WitchCompany.Toolkit.Editor.Tool;
 using WitchCompany.Toolkit.Editor.Validation;
+using JUnityKey = WitchCompany.Toolkit.Editor.DataStructure.JUnityKey;
 
 namespace WitchCompany.Toolkit.Editor.API
 {
     public static partial class WitchAPI
     {
+        /// <summary>
+        /// 로그인 api
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
         public static async UniTask<JAuth> Login(string email, string password)
         {
             var response = await Request<JAuth>(new RequestHelper
@@ -43,6 +50,11 @@ namespace WitchCompany.Toolkit.Editor.API
             AuthConfig.Auth = new JAuth();
         }
 
+        /// <summary>
+        /// 유저 정보 조회 api
+        /// </summary>
+        /// <param name="auth"></param>
+        /// <returns></returns>
         public static async UniTask<JUserInfo> GetUserInfo(JAuth auth)
         {
             if (string.IsNullOrEmpty(auth?.accessToken)) return null;
@@ -57,29 +69,6 @@ namespace WitchCompany.Toolkit.Editor.API
             return response.success ? response.payload : null;
         }
 
-        public static async UniTask<JAuth> Refresh()
-        {
-            Log("토큰 리프래쉬 요청");
-            
-            var auth = AuthConfig.Auth;
-            
-            if (string.IsNullOrEmpty(auth.refreshToken))
-                return null;
-            
-            var response = await Request<JAuth>(new RequestHelper
-            {
-                Method = "POST",
-                Uri = ApiConfig.URL("user/refresh/ww"),
-                Headers = ApiConfig.TokenHeader(auth.refreshToken),
-                BodyString = JsonConvert.SerializeObject(new Dictionary<string, string>
-                {
-                    ["accessAt"] = "world"
-                }),
-                ContentType = ApiConfig.ContentType.Json
-            });
-
-            return response.success ? response.payload : null;
-        }
 
         /// <summary>
         /// 1성공, -1로그인 필요, -2권한 필요
@@ -102,14 +91,7 @@ namespace WitchCompany.Toolkit.Editor.API
             return -2;
         }
 
-        /// <summary> 파일 경로 존재할 때 파일 반환 </summary>
-        private static async UniTask<byte[]> GetByte(string filePath)
-        {
-            if (!File.Exists(filePath)) return null;
-            
-            var bytes = await File.ReadAllBytesAsync(filePath);
-            return bytes;
-        }
+
 
         /// <summary>
         /// 유니티 키 생성 (번들 업로드)
@@ -120,18 +102,18 @@ namespace WitchCompany.Toolkit.Editor.API
             var auth = AuthConfig.Auth;
             if (string.IsNullOrEmpty(auth?.accessToken)) return -1;
             
-            var blockData = new JUnityKeyData
+            var blockData = new JUnityKeyInfo
             {
                 pathName = option.Key,
-                theme = option.type.ToString().ToLower(),
+                theme = option.blockType.ToString().ToLower(),
                 capacity = PublishConfig.Capacity,
                 isOfficial = PublishConfig.Official ? 1 : 0,
                 unityKeyDetail = AssetDataValidator.GetAssetData().Values.ToList(),
-                isPrivate = option.type == BlockType.Brand,
+                isPrivate = option.blockType == BlockType.Brand,
                 gameUnityKey = rankingKey
             };
             
-            var bundleData = new JBundle
+            var bundleData = new JUnityKey
             {
                 blockData = blockData,
                 bundleInfoList = bundleInfos
@@ -150,12 +132,11 @@ namespace WitchCompany.Toolkit.Editor.API
             var androidBundlePath = Path.Combine(AssetBundleConfig.BundleExportPath, AssetBundleConfig.Android, option.BundleKey);
             var iosBundlePath = Path.Combine(AssetBundleConfig.BundleExportPath, AssetBundleConfig.Ios, option.BundleKey);
             
-            
-            var standaloneBundleData = await GetByte(standaloneBundlePath);
-            var webglBundleData = await GetByte(webglBundlePath);
-            var webglMobileBundleData = await GetByte(webglMobileBundlePath);
-            var androidBundleData = await GetByte(androidBundlePath);
-            var iosBundleData = await GetByte(iosBundlePath);
+            var standaloneBundleData = await FileTool.GetByte(standaloneBundlePath);
+            var webglBundleData = await FileTool.GetByte(webglBundlePath);
+            var webglMobileBundleData = await FileTool.GetByte(webglMobileBundlePath);
+            var androidBundleData = await FileTool.GetByte(androidBundlePath);
+            var iosBundleData = await FileTool.GetByte(iosBundlePath);
             
             var form = new List<IMultipartFormSection>
             {
@@ -176,7 +157,7 @@ namespace WitchCompany.Toolkit.Editor.API
             
             #endregion
             
-            var response = await Request<JBundle>(new RequestHelper
+            var response = await Request<JUnityKey>(new RequestHelper
             {
                 Method = "POST",
                 Uri = ApiConfig.URL("v3/toolkits/unity-key"),
@@ -188,119 +169,195 @@ namespace WitchCompany.Toolkit.Editor.API
             if (response.statusCode == 409) return -2;  
             return -1;
         }
+
+
+        /// <summary>
+        /// 유니티 키 생성 api (v4)
+        /// </summary>
+        /// <returns></returns>
+        public static async UniTask<JUnityKey> CreateUnityKey(JUnityKey unityKey, Dictionary<string, byte[]> bundleDict, byte[] thumbnail, BlockPublishOption option)
+        {
+            var auth = AuthConfig.Auth;
+            var jsonData = JsonConvert.SerializeObject(unityKey);
+
+            var form = new List<IMultipartFormSection>
+            {
+                new MultipartFormDataSection("json", jsonData, "application/json"),
+                new MultipartFormFileSection("image", thumbnail, option.ThumbnailKey, "image/jpg"),
+                new MultipartFormFileSection(AssetBundleConfig.Standalone, bundleDict[AssetBundleConfig.Standalone], option.BundleKey, ""),
+                new MultipartFormFileSection(AssetBundleConfig.Webgl, bundleDict[AssetBundleConfig.Webgl], option.BundleKey, ""),
+                new MultipartFormFileSection(AssetBundleConfig.WebglMobile, bundleDict[AssetBundleConfig.WebglMobile], option.BundleKey, ""),
+                new MultipartFormFileSection(AssetBundleConfig.Android, bundleDict[AssetBundleConfig.Android], option.BundleKey, ""),
+                new MultipartFormFileSection(AssetBundleConfig.Ios, bundleDict[AssetBundleConfig.Ios], option.BundleKey, "")
+            };
+            
+            var response = await AuthSafeRequest<JUnityKey>(new RequestHelper
+            {
+                Method = "POST",
+                Uri = ApiConfig.URL("v4/toolkits/unity-key"),
+                Headers = ApiConfig.TokenHeader(auth.accessToken),
+                FormSections = form
+            });
+
+            return response.success ? response.payload : null;
+        }
+
+        /// <summary>
+        /// 유니티 키 번들 수정 api
+        /// </summary>
+        /// <param name="auth"></param>
+        /// <param name="unityKeyId"></param>
+        /// <param name="fileName"></param>
+        /// <param name="bundleInfos"></param>
+        /// <param name="bundleBytes"></param>
+        /// <returns></returns>
+        public static async UniTask<JUnityKey> UpdateBundle(int unityKeyId, string fileName, List<JBundleInfo> bundleInfos, Dictionary<string, byte[]> bundleBytes)
+        {
+            var auth = AuthConfig.Auth;
+            var unityKey = new JUnityKey { bundleInfoList = bundleInfos };
+            var jsonData = JsonConvert.SerializeObject(unityKey);
+            
+            var form = new List<IMultipartFormSection>
+            {
+                new MultipartFormDataSection("json", jsonData, "application/json"),
+                new MultipartFormFileSection(AssetBundleConfig.Standalone, bundleBytes[AssetBundleConfig.Standalone], fileName, ""),
+                new MultipartFormFileSection(AssetBundleConfig.Webgl, bundleBytes[AssetBundleConfig.Webgl], fileName, ""),
+                new MultipartFormFileSection(AssetBundleConfig.WebglMobile, bundleBytes[AssetBundleConfig.WebglMobile], fileName, ""),
+                new MultipartFormFileSection(AssetBundleConfig.Android, bundleBytes[AssetBundleConfig.Android], fileName, ""),
+                new MultipartFormFileSection(AssetBundleConfig.Ios, bundleBytes[AssetBundleConfig.Ios], fileName, "")
+            };
+            
+            var response = await AuthSafeRequest<JUnityKey>(new RequestHelper
+            {
+                Method = "POST",
+                Uri = ApiConfig.URL($"v4/toolkits/unity-key/{unityKeyId}/bundles"),
+                Headers = ApiConfig.TokenHeader(auth.accessToken),
+                FormSections = form
+            });
+            
+            return response.success ? response.payload : null;
+        }
+
+        public static async UniTask<bool> UpdateThumbnail(int unityKeyId, BlockPublishOption option, byte[] thumbnail)
+        {
+            var auth = AuthConfig.Auth;
+            var unityKeyInfo = new JUnityKeyInfo
+            {
+                unityKeyId = unityKeyId,
+                pathName = option.Key
+            };
+            var jsonData = JsonConvert.SerializeObject(unityKeyInfo);
+
+            var form = new List<IMultipartFormSection>
+            {
+                new MultipartFormDataSection("json", jsonData, "application/json"),
+                new MultipartFormFileSection("image", thumbnail, option.ThumbnailKey, "image/jpg"),
+            };
+            
+            var response = await AuthSafeRequest<JUnityKey>(new RequestHelper
+            {
+                Method = "PUT",
+                Uri = ApiConfig.URL("v4/toolkits/unity-key"),
+                Headers = ApiConfig.TokenHeader(auth.accessToken),
+                FormSections = form
+            });
+
+            return response.success;
+        }
+
+
+        /// <summary>
+        /// 유니티 키 디테일 수정
+        /// </summary>
+        /// <param name="unityKeyId"></param>
+        /// <param name="details"></param>
+        /// <returns></returns>
+        public static async UniTask<bool> UpdateUnityKeyDetail(int unityKeyId, List<JUnityKeyDetail> details)
+        {
+            var auth = AuthConfig.Auth;
+            var unityKeyInfo = new JUnityKeyInfo { unityKeyDetail = details };
+            
+            var jsonData = JsonConvert.SerializeObject(unityKeyInfo);
+            
+            var response = await AuthSafeRequest<JUnityKeyInfo>(new RequestHelper
+            {
+                Method = "PUT",
+                Uri = ApiConfig.URL($"v4/toolkits/unity-key/{unityKeyId}/detail"),
+                Headers = ApiConfig.TokenHeader(auth.accessToken),
+                BodyString = jsonData
+            });
+
+            return response.success;
+        }
+        
+        /// <summary>
+        /// 유니티 키 랭킹 키 수정
+        /// </summary>
+        /// <returns></returns>
+        public static async UniTask<bool> UpdateRankingKey(int unityKeyId, JRankingKey rankingKey)
+        {
+            var auth = AuthConfig.Auth;
+
+            var data = new JUnityKeyInfo
+            {
+                gameUnityKey = rankingKey
+            };
+
+            var response = await AuthSafeRequest<JUnityKeyInfo>(new RequestHelper
+            {
+                Method = "PUT",
+                Uri = ApiConfig.URL($"v4/toolkits/unity-key/{unityKeyId}/game"),
+                Headers = ApiConfig.TokenHeader(auth.accessToken),
+                BodyString = JsonConvert.SerializeObject(data),
+            });
+
+            return response.success;
+        }
+        
+        
+        /// <summary>
+        /// 유니티 키 컬렉션, 콘서트 정보 수정
+        /// </summary>
+        /// <returns></returns>
+        public static async UniTask<JUnityKey> UpdateCollectionAndConcert(int unityKeyId, JCollectionData collectionData, JBlockLocationInfo blockLocationInfo)
+        {
+            var auth = AuthConfig.Auth;
+
+            var data = new JUnityKey
+            {
+                collectionBundleData = collectionData,
+                concertBundleData = blockLocationInfo
+            };
+            
+            var response = await AuthSafeRequest<JUnityKey>(new RequestHelper
+            {
+                Method = "PUT",
+                Uri = ApiConfig.URL($"v4/toolkits/unity-key/{unityKeyId}/theme"),
+                Headers = ApiConfig.TokenHeader(auth.accessToken),
+                BodyString = JsonConvert.SerializeObject(data),
+            });
+
+            return response.success ? response.payload : null;
+        }
+        
         
         /// <summary>
         /// 유니티 키 이름으로 조회 (v4)
-        /// 0 : 심사 상태
-        /// 1 : 심사 등록 가능 
-        /// -1 : 중복된 키 존재 (심사 승인된 키 존재)
-        /// -2 : 권한 오류
-        /// -3 : 통신 실패
+        /// 0 : 유니티 키 존재하지 않을 경우
+        /// 1 : 유니티 키 존재할 경우
         /// </summary>
-        public static async UniTask<(int status, JBundle bundle)> GetUnityKey(string pathname)
+        public static async UniTask<JUnityKey> GetUnityKey(string pathname)
         {
-            var status = 0;
-            var response = await Request<JBundle>(new RequestHelper
+            var response = await AuthSafeRequest<JUnityKey>(new RequestHelper
             {
                 Method = "GET",
                 Uri = ApiConfig.URL($"v4/toolkits/unity-key/{pathname}")
             });
             
-            if (response.statusCode == 400)
-            {
-                // 등록 전
-                if (string.Equals(response.message,UnityKeyConfig.notExistMsg))
-                    status = 1;
-                // 진행 중
-                else if(string.Equals(response.message, UnityKeyConfig.approveMsg))
-                    status = -1;
-            }
-            
-            return response.success ? (status, response.payload) : (status, null);
+            return response.success ? response.payload :  null;
         }
         
         
-        /// <summary> 유니티 키 리스트 조회 </summary>
-        public static async UniTask<List<JUnityKey>> GetUnityKeys(int page, int limit)
-        {
-            var auth = AuthConfig.Auth;
-            if (string.IsNullOrEmpty(auth?.accessToken)) return null;
-            
-            var response = await Request<List<JUnityKey>>(new RequestHelper
-            {
-                Method = "GET",
-                Uri = ApiConfig.URL($"v2/toolkits/unity-key?page={page}&limit={limit}"),
-                Headers = ApiConfig.TokenHeader(auth.accessToken)
-            });
-            
-            return response.success ? response.payload : null;
-        }
-        
-        // /// <summary>
-        // /// 유니티 키로 블록 생성
-        // /// 성공(blockId), 실패(-1), pathName 중복(-2)
-        // /// </summary>
-        // public static async UniTask<int> UploadBlock(JBlockData blockData)
-        // {
-        //     var auth = AuthConfig.Auth;
-        //     if (string.IsNullOrEmpty(auth?.accessToken)) return -1;
-        //     
-        //     
-        //     var thumbnailData = await GetByte(AdminConfig.ThumbnailPath);
-        //     var thumbnailKey = AdminConfig.ThumbnailPath.Split("/")[^1];
-        //     
-        //     
-        //     var form = new List<IMultipartFormSection> {
-        //         new MultipartFormDataSection("json", JsonConvert.SerializeObject(blockData), "application/json"),
-        //     };
-        //     
-        //     if(thumbnailData != null)
-        //         form.Add(new MultipartFormFileSection("image", thumbnailData, thumbnailKey, "image/jpg"));
-        //     
-        //     var response = await Request<DataStructure.Admin.JBlockData>(new RequestHelper
-        //     {
-        //         Method = "POST",
-        //         Uri = ApiConfig.URL("v2/toolkits/blocks"),
-        //         Headers = ApiConfig.TokenHeader(auth.accessToken),
-        //         FormSections = form
-        //     });
-        //     
-        //     if (response.statusCode == 200) return response.payload.blockId;
-        //     if (response.statusCode == 409) return -2;
-        //     return -1;
-        // }
-
-        // /// <summary>
-        // /// 블록 정보 수정
-        // /// </summary>
-        // /// <param name="blockData"></param>
-        // public static async UniTask<bool> UpdateBlockData(DataStructure.Admin.JBlockData blockData)
-        // {
-        //     var auth = AuthConfig.Auth;
-        //     if (string.IsNullOrEmpty(auth?.accessToken)) return false;
-        //     
-        //     
-        //     var thumbnailData = await GetByte(AdminConfig.ThumbnailPath);
-        //     var thumbnailKey = AdminConfig.ThumbnailPath.Split("/")[^1];
-        //     
-        //     
-        //     var form = new List<IMultipartFormSection> {
-        //         new MultipartFormDataSection("json", JsonConvert.SerializeObject(blockData), "application/json"),
-        //     };
-        //     
-        //     if(thumbnailData != null)
-        //         form.Add(new MultipartFormFileSection("image", thumbnailData, thumbnailKey, "image/jpg"));
-        //
-        //     var response = await Request<DataStructure.Admin.JBlockData>(new RequestHelper
-        //     {
-        //         Method = "POST",
-        //         Uri = ApiConfig.URL("v2/blocks/update/blockdata"),
-        //         Headers = ApiConfig.TokenHeader(auth.accessToken),
-        //         FormSections = form
-        //     });
-        //
-        //     return response is { success: true };
-        // }
         
         
         /// <summary>
@@ -341,67 +398,24 @@ namespace WitchCompany.Toolkit.Editor.API
             
             return response.success;
         }
-        /// <summary>
-        /// pathName으로 블록 조회 
-        /// </summary>
-        /// <param name="pathName"></param>
-        /// <returns></returns>
-        public static async UniTask<JBlockData> GetBlock(string pathName)
-        {
-            var response = await Request<JBlockData>(new RequestHelper
-            {
-                Method = "GET",
-                Uri = ApiConfig.URL($"v2/toolkits/blocks/{pathName}")
-            });
-
-            return response.success ? response.payload : null;
-        }
         
-        /// <summary> 블록 존재 여부 조회 </summary>
-        /// <param name="pathName"></param>
-        /// <returns></returns>
-        public static async UniTask<JExistBlock> CheckExistBlock(string pathName)
-        {
-            var result = await Request<JExistBlock>(new RequestHelper
-            {
-                Method = "GET",
-                Uri = ApiConfig.URL($"v2/blocks/check/accessible/{pathName}")
-            });
-
-            return result.success ? result.payload : null;
-        }
-
-        // public static async UniTask<bool> UpdateBlockStatus(string pathName)
-        // {
-        //     var auth = AuthConfig.Auth;
-        //
-        //     var blockStatusData = new JBlockStatus
-        //     {
-        //         pathname = pathName,
-        //         status = (int)AdminConfig.BlockStatus
-        //     };
-        //
-        //     var response = await Request<JBlockStatus>(new RequestHelper
-        //     {
-        //         Method = "POST",
-        //         Uri = ApiConfig.URL("v2/blocks/status/change"),
-        //         Headers = ApiConfig.TokenHeader(auth.accessToken),
-        //         BodyString = JsonConvert.SerializeObject(blockStatusData)
-        //     });
-        //
-        //      Debug.Log(JsonConvert.SerializeObject(blockStatusData));
-        //     
-        //     return response != null && response.success;
-        // }
 
         private static async UniTask<(string key, byte[] data)> GetBundleData(string name, string folderPath, string platform)
         {
             var key = $"{name}_{platform}.bundle".ToLower();
             var bundlePath = Path.Combine(folderPath, key);
             
-            return (key, await GetByte(bundlePath));
+            return (key, await FileTool.GetByte(bundlePath));
         }
         
+        
+        /// <summary>
+        /// 아이템 유니티 키 생성 및 수정 api
+        /// </summary>
+        /// <param name="itemBundleData"></param>
+        /// <param name="bundleFolderPath"></param>
+        /// <param name="modelPath"></param>
+        /// <returns></returns>
         public static async UniTask<bool> UploadItemData(JItemBundleData itemBundleData, string bundleFolderPath, string modelPath)
         {
             var auth = AuthConfig.Auth;
@@ -417,7 +431,7 @@ namespace WitchCompany.Toolkit.Editor.API
    
             // gltf
             var gltfName = modelPath.Split("/")[^1];
-            var gltfData = await GetByte(modelPath);
+            var gltfData = await FileTool.GetByte(modelPath);
             
             var form = new List<IMultipartFormSection>
             {
@@ -440,8 +454,6 @@ namespace WitchCompany.Toolkit.Editor.API
 
             return response != null && response.success;
         }
-        
-        
     }
     
     public static partial class WitchAPI
@@ -477,6 +489,31 @@ namespace WitchCompany.Toolkit.Editor.API
             // 만료가 아닐 경우,
             return res;
         }
+        
+        public static async UniTask<JAuth> Refresh()
+        {
+            Log("토큰 리프래쉬 요청");
+
+            var auth = AuthConfig.Auth;
+
+            if (string.IsNullOrEmpty(auth.refreshToken))
+                return null;
+
+            var response = await Request<JAuth>(new RequestHelper
+            {
+                Method = "POST",
+                Uri = ApiConfig.URL("user/refresh/ww"),
+                Headers = ApiConfig.TokenHeader(auth.refreshToken),
+                BodyString = JsonConvert.SerializeObject(new Dictionary<string, string>
+                {
+                    ["accessAt"] = "world"
+                }),
+                ContentType = ApiConfig.ContentType.Json
+            });
+
+            return response.success ? response.payload : null;
+        }
+
 
         private static string GetFormSectionsContentType(out byte[] bodyRaw, RequestHelper options)
         {
