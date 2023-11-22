@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
-using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -94,7 +93,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 if (PublishConfig.Capacity < 1) PublishConfig.Capacity = 1;
                 if (PublishConfig.Capacity > 20) PublishConfig.Capacity = 20;
             
-                GUILayout.Label("1~20", CustomWindow.LabelTextStyle);
+                // GUILayout.Label("1~20", CustomWindow.LabelTextStyle);
             }
             
             // 공식 여부
