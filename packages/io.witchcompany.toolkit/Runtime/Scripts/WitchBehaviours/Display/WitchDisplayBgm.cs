@@ -12,7 +12,7 @@ namespace WitchCompany.Toolkit
         public override string Description => "전시 유무에 따라 공간 BGM을 변경할 수 있는 요소입니다.\n" +
                                               "연결된 전시 툴킷에 아이템이 배치되면 설정한 오디오 클립으로 변경됩니다.\n" +
                                               "해당 요소는 블록 당 1개만 배치할 수 있습니다.";
-        public override string DocumentURL => " ";
+        public override string DocumentURL => "https://www.notion.so/witchcompany/WitchDisplayBgm-ec89fa24f4bf4dfa8aa537f208eaa4f9?pvs=4";
 
         public override int MaximumCount => 1;
 
