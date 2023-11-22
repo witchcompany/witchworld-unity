@@ -25,7 +25,7 @@ namespace WitchCompany.Toolkit
         public List<WitchBehaviour> DisplayBehaviours => displayBehaviours;
         public AudioClip AudioClip => audioClip;
 
-
+#if UNITY_EDITOR
         public override ValidationError ValidationCheck()
         {
             if (displayBehaviours is {Count: <= 0}) return NullError(nameof(displayBehaviours));
@@ -33,6 +33,8 @@ namespace WitchCompany.Toolkit
             
             return base.ValidationCheck();
         }
+        
+#endif
     }
 }
  
