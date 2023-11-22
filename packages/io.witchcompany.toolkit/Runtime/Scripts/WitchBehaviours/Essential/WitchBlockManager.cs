@@ -97,6 +97,7 @@ namespace WitchCompany.Toolkit.Module
             var beggingCount = 0;
             var craftingCount = 0;
             var specificCount = 0;
+            var goodsCount = 0;
 
             
             foreach (var behaviour in behaviours)
@@ -158,6 +159,12 @@ namespace WitchCompany.Toolkit.Module
                 {
                     var display = (WitchSpecificDisplay)behaviour;
                     display.Editor_SetIndex(specificCount++);
+                }
+
+                if (type == typeof(WitchGoodsDisplay))
+                {
+                    var display = (WitchGoodsDisplay)behaviour;
+                    display.Editor_SetIndex(goodsCount++);
                 }
             }
             
