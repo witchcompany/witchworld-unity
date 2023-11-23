@@ -19,7 +19,7 @@ namespace WitchCompany.Toolkit.Module
         [SerializeField, ReadOnly] public int Index;
         
         [field: Header("전시 될 미디어 타입")]
-        [field: SerializeField] public MediaType MediaType { get; private set; }
+        // [field: SerializeField] public MediaType MediaType { get; private set; }
 
         [Header("판매 상품 ID")] 
         [SerializeField] private int salesItemId;
@@ -50,8 +50,8 @@ namespace WitchCompany.Toolkit.Module
             if (string.IsNullOrWhiteSpace(salesItemId.ToString()))
                 return NullError("SalesId");
 
-            if (MediaType == MediaType.Video && AlbumMusic == null)
-                return NullError("AlbumMusic");
+            // if (MediaType == MediaType.Video && AlbumMusic == null)
+            //     return NullError("AlbumMusic");
             
             return base.ValidationCheck();
         } 
