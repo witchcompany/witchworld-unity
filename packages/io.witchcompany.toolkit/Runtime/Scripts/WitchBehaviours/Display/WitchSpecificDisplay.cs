@@ -1,18 +1,21 @@
 using System;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
+using WitchCompany.Toolkit.Scripts.WitchBehaviours;
+using WitchCompany.Toolkit.Scripts.WitchBehaviours.Interface;
 using WitchCompany.Toolkit.Validation;
 namespace WitchCompany.Toolkit.Module
 {
-    public class WitchSpecificDisplay : WitchDisplayBase
+    public class WitchSpecificDisplay : WitchDisplayBase, ICollectionDisplay
     {
         public override string BehaviourName => "전시: 지정 에셋을 배치하는 액자";
         public override string Description => "지정 에셋을 등록하여 전시할 수 있는 액자입니다.";
         public override string DocumentURL => "";
-        
-        [field: Header("판매 상품 ID")] 
-        [field :SerializeField] public int SalesId { get; private set; }
-        [field: SerializeField] public int SalesIdDeb { get; private set; }
+
+        [Header("판매 상품 ID")] 
+        [SerializeField] private int salesId;
+        [SerializeField] private int salesIdDeb;
         
         public override int MaximumCount => 20;
         [field: Header("구매 유도 오브젝트")]
@@ -28,13 +31,17 @@ namespace WitchCompany.Toolkit.Module
             if (NonObject == null) return NullError(nameof(NonObject));
             if (!NonObject.TryGetComponent(out Collider _))
                 return new ValidationError("NonObject에 Collider가 있어야 합니다", context: NonObject);
-            if (string.IsNullOrWhiteSpace(SalesIdDeb.ToString()))
+            if (string.IsNullOrWhiteSpace(salesIdDeb.ToString()))
                 return NullError("SalesIdDeb");
-            if (string.IsNullOrWhiteSpace(SalesId.ToString()))
+            if (string.IsNullOrWhiteSpace(salesId.ToString()))
                 return NullError("SalesId");
             
             return null;
         }
 #endif
+        public int SalesItemId => salesId;
+        public int SalesItemIdDev => salesIdDeb;
+        public AssetType AssetType => AssetType.Specific;
+        public int BehaviourIndex => index;
     }
 }

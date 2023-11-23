@@ -27,7 +27,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
 
         public static GUIStyle LogTextStyle => logTextStyle;
         public static GUIStyle LogButtonStyle => logButtonStyle;
-        public static GUIStyle LabelTextStyle => labelTextStyle;
+        // public static GUIStyle LabelTextStyle => labelTextStyle;
         public static bool IsInputDisable { set => isInputDisable = value; }
         
         
