@@ -27,7 +27,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
 
         public static GUIStyle LogTextStyle => logTextStyle;
         public static GUIStyle LogButtonStyle => logButtonStyle;
-        public static GUIStyle LabelTextStyle => labelTextStyle;
+        // public static GUIStyle LabelTextStyle => labelTextStyle;
         public static bool IsInputDisable { set => isInputDisable = value; }
         
         
@@ -76,8 +76,8 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 }
             };
             
-            labelTextStyle = EditorStyles.label;
-            labelTextStyle.fixedWidth = 120;
+            // labelTextStyle = EditorStyles.label;
+            // labelTextStyle.fixedWidth = 120;
         }
 
         private static GUIContent[] defalutToolbarLabels = new GUIContent[4]
