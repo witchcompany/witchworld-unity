@@ -42,7 +42,8 @@ namespace WitchCompany.Toolkit.Module
 
         // 외부 접근
         public string ToolkitVersion => toolkitVersion;
-        public AudioClip DefaultBGM => defaultBGM;
+
+        public AudioClip DefaultBGM { get => defaultBGM; set => defaultBGM = value; }
         public PointOfView POV => pov;
         public List<WitchBehaviour> Behaviours => behaviours;
 
