@@ -11,10 +11,11 @@ namespace WitchCompany.Toolkit.Editor.Validation
     {
         private static JUnityKeyDetail art = new("art");
         private static JUnityKeyDetail video = new("video");
+        private static JUnityKeyDetail freeArt = new("freeArt");
+        private static JUnityKeyDetail craftingArt = new("craftingArt");
         private static JUnityKeyDetail posting = new("posting");
         private static JUnityKeyDetail doodling = new("doodling");
         private static JUnityKeyDetail ranking = new("ranking");
-        private static JUnityKeyDetail freeArt = new("freeArt");
         private static JUnityKeyDetail stall = new("stall");
         private static JUnityKeyDetail auctionBooth = new("auctionBooth");
         private static JUnityKeyDetail beggingBooth = new("beggingBooth");
@@ -29,7 +30,8 @@ namespace WitchCompany.Toolkit.Editor.Validation
             {"freeArt", freeArt},
             {"stall", stall},
             {"auctionBooth", auctionBooth},
-            {"beggingBooth", beggingBooth}
+            {"beggingBooth", beggingBooth},
+            {"craftingArt", craftingArt}
         };
         
         private static void Initialize()
@@ -56,11 +58,15 @@ namespace WitchCompany.Toolkit.Editor.Validation
                     else if (displayFrame.MediaType == MediaType.Video)
                         video.count++;
                 }
-                //자유 배치 에셋
+                // 자유 배치 에셋
                 if (transform.TryGetComponent(out WitchFreeDisplay freeDisplay))
                     freeArt.count++;
+                
+                // 크래프팅 배치 에셋
+                if (transform.TryGetComponent(out WitchCraftingDisplay craftingDisplay))
+                    craftingArt.count++;
 
-                //가판대 에셋
+                // 가판대 에셋
                 if (transform.TryGetComponent(out WitchStallDisplay stallDisplay))
                     stall.count++;
                 

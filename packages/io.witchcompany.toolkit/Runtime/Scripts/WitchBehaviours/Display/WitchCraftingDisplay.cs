@@ -22,10 +22,6 @@ namespace WitchCompany.Toolkit.Module
 
         [Header("미디어가 그려질 랜더러")]
         [field: SerializeField] public Renderer MediaRenderer;
-
-        [Header("미디어가 없을 때 보여줄 오브젝트")]
-        [field: SerializeField] public GameObject NonObject;
-        
         
         [Header("크래프팅 아이템 정보")]
         [field: SerializeField] public JLanguageString ItemName;
