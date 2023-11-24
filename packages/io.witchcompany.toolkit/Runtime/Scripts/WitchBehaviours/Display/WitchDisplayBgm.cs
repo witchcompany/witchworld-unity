@@ -27,6 +27,13 @@ namespace WitchCompany.Toolkit.Module
         public override ValidationError ValidationCheck()
         {
             if (displayBehaviours is {Count: <= 0}) return NullError(nameof(displayBehaviours));
+
+            foreach (var behaviour in displayBehaviours)
+            {
+                if(behaviour == null)
+                    return NullError(nameof(behaviour));
+            }
+            
             if (audioClip == null) return NullError(nameof(audioClip));
             
             return base.ValidationCheck();
