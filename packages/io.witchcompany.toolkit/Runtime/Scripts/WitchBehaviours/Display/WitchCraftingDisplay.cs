@@ -28,7 +28,7 @@ namespace WitchCompany.Toolkit.Module
         
         
         [Header("크래프팅 아이템 정보")]
-        [field: SerializeField] public string ItemName;
+        [field: SerializeField] public JLanguageString ItemName;
         [field: SerializeField] public JLanguageString ItemDescription;
         [field: SerializeField] public bool IsPrivate;
         
@@ -43,20 +43,22 @@ namespace WitchCompany.Toolkit.Module
 
         public override ValidationError ValidationCheck()
         {
-            if (MediaRenderer == null) return NullError("Collider");
+            if (MediaRenderer == null) return NullError(nameof(MediaRenderer));
             if (!TryGetComponent<Collider>(out var col))
                 return new ValidationError($"{gameObject.name}에는 콜라이더가 있어야 합니다.", "Null Collider", this);
 
-            if (string.IsNullOrWhiteSpace(ItemName) || ItemName.Length is <= 0 or > 20)
-                return new ValidationError($"{gameObject.name}의 itemName은 1~20자여야 합니다."," ",this);
+            if (string.IsNullOrWhiteSpace(ItemName.en) || ItemName.en.Length is <= 0 or > 20)
+                return new ValidationError($"{gameObject.name}의 itemName(영문)은 1~20자여야 합니다."," ",this);
+
+            if (string.IsNullOrWhiteSpace(ItemName.kr) || ItemName.kr.Length is <= 0 or > 20)
+                return new ValidationError($"{gameObject.name}의 itemName(한글)은 1~20자여야 합니다."," ",this);
             
             if(ItemDescription.en.Length > 200)
-                return new ValidationError($"{gameObject.name}의 description의 en은 200자 이내여야 합니다."," ",this);
+                return new ValidationError($"{gameObject.name}의 description(영문)은 200자 이내여야 합니다."," ",this);
             
             if(ItemDescription.kr.Length > 200)
-                return new ValidationError($"{gameObject.name}의 description의 kr은 200자 이내여야 합니다."," ",this);
+                return new ValidationError($"{gameObject.name}의 description(한글)은 200자 이내여야 합니다."," ",this);
             
-
             return base.ValidationCheck();
         }
         

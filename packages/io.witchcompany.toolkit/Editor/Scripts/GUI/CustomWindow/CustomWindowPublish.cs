@@ -281,8 +281,6 @@ namespace WitchCompany.Toolkit.Editor.GUI
                         throw new Exception("유니티 키 에셋 개수 업데이트 실패!");
                 }
                 
-
-                
                 // 유니티 키 게임 랭킹 키 업데이트
                 if (PublishConfig.BlockType == BlockType.Game)
                 {
