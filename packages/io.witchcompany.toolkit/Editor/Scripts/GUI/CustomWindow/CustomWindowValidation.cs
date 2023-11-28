@@ -54,6 +54,8 @@ namespace WitchCompany.Toolkit.Editor.GUI
             
             EditorGUILayout.LabelField("Art", assetData["art"].count.ToString());
             EditorGUILayout.LabelField("Video", assetData["video"].count.ToString());
+            EditorGUILayout.LabelField("Free Art", assetData["freeArt"].count.ToString());
+            EditorGUILayout.LabelField("Crafting Art", assetData["craftingArt"].count.ToString());
             EditorGUILayout.LabelField("Doodling", assetData["doodling"].count.ToString());
             EditorGUILayout.LabelField("Posting", assetData["posting"].count.ToString());
             EditorGUILayout.LabelField("Ranking", assetData["ranking"].count.ToString());

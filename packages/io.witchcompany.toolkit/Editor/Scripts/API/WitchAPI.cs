@@ -272,7 +272,7 @@ namespace WitchCompany.Toolkit.Editor.API
         /// <param name="unityKeyId"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static async UniTask<bool> UpdateUnityKeyDetail(int unityKeyId, List<JUnityKeyDetail> details)
+        public static async UniTask<bool> UpdateUnityKeyDetail(int unityKeyId, List<JUnityKeyDetail> details, bool isUpdate)
         {
             var auth = AuthConfig.Auth;
             var unityKeyInfo = new JUnityKeyInfo { unityKeyDetail = details };
@@ -281,7 +281,7 @@ namespace WitchCompany.Toolkit.Editor.API
             
             var response = await AuthSafeRequest<JUnityKeyInfo>(new RequestHelper
             {
-                Method = "PUT",
+                Method = isUpdate ? "PUT" : "POST",
                 Uri = ApiConfig.URL($"v4/toolkits/unity-key/{unityKeyId}/detail"),
                 Headers = ApiConfig.TokenHeader(auth.accessToken),
                 BodyString = jsonData
