@@ -152,7 +152,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 buildReport = WitchToolkitPipeline.PublishWithValidation(GetOption());
             
                 if (buildReport.result == JBuildReport.Result.Success)
-                {
+                {   
                     EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Uploading to server...", 1.0f);
             
                     // 번들 업로드

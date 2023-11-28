@@ -1,7 +1,5 @@
 using UnityEngine;
 using WitchCompany.Toolkit.Attribute;
-using WitchCompany.Toolkit.Scripts.WitchBehaviours;
-using WitchCompany.Toolkit.Scripts.WitchBehaviours.Interface;
 using WitchCompany.Toolkit.Validation;
 
 namespace WitchCompany.Toolkit.Module
@@ -17,11 +15,14 @@ namespace WitchCompany.Toolkit.Module
         [Header("Index")]
         [SerializeField, ReadOnly] public int Index;
         
-        [Header("미디어 타입")]
-        [field: SerializeField] public MediaType MediaType;
+        // [Header("미디어 타입")]
+        // [field: SerializeField] public MediaType MediaType;
 
         [Header("미디어가 그려질 랜더러")]
         [field: SerializeField] public Renderer MediaRenderer;
+
+        [Header("미디어가 없을 경우 보여줄 오브젝트")]
+        [field: SerializeField] public GameObject NonObject;
         
         [Header("크래프팅 아이템 정보")]
         [field: SerializeField] public JLanguageString ItemName;
@@ -40,9 +41,15 @@ namespace WitchCompany.Toolkit.Module
         public override ValidationError ValidationCheck()
         {
             if (MediaRenderer == null) return NullError(nameof(MediaRenderer));
-            if (!TryGetComponent<Collider>(out var col))
-                return new ValidationError($"{gameObject.name}에는 콜라이더가 있어야 합니다.", "Null Collider", this);
 
+            if (NonObject == null) return NullError(nameof(NonObject));
+            
+            if (!MediaRenderer.TryGetComponent<Collider>(out var rendererCol))
+                return new ValidationError($"{MediaRenderer.gameObject.name}에는 콜라이더가 있어야 합니다.", "Null Collider", this);
+            
+            if (!NonObject.TryGetComponent<Collider>(out var nonObjectCol))
+                return new ValidationError($"{NonObject.name}에는 콜라이더가 있어야 합니다.", "Null Collider", this);
+            
             if (string.IsNullOrWhiteSpace(ItemName.en) || ItemName.en.Length is <= 0 or > 20)
                 return new ValidationError($"{gameObject.name}의 itemName(영문)은 1~20자여야 합니다."," ",this);
 
