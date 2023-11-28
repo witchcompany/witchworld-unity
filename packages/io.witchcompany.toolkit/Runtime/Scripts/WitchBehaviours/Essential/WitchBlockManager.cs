@@ -92,6 +92,7 @@ namespace WitchCompany.Toolkit.Module
 
             var displayPhotos = new List<WitchDisplayFrame>();
             var displayVideos = new List<WitchDisplayFrame>();
+            var displayLive = new List<WitchDisplayFrame>();
 
             var publicPaintCount = 0;
             var boothCount = 0;            
@@ -114,10 +115,18 @@ namespace WitchCompany.Toolkit.Module
                 if (type == typeof(WitchDisplayFrame))
                 {
                     var display = (WitchDisplayFrame) behaviour;
-                    if(display.MediaType == MediaType.Picture)
-                        displayPhotos.Add(display);
-                    else
-                        displayVideos.Add(display);
+                    switch (display.MediaType)
+                    {
+                        case MediaType.Picture:
+                            displayPhotos.Add(display);
+                            break;
+                        case MediaType.Video:
+                            displayVideos.Add(display);
+                            break;
+                        case MediaType.LiveVideo:
+                            displayLive.Add(display);
+                            break;
+                    }
                 }
                 
                 // 낙서 카운팅
@@ -175,6 +184,9 @@ namespace WitchCompany.Toolkit.Module
             //비디오 인덱스 세팅
             for (var i = 0; i < displayVideos.Count; i++)
                 displayVideos[i].Editor_SetIndex(displayPhotos.Count + i);
+            // 라이브 인덱스 세팅
+            for (var i = 0; i < displayLive.Count; i++)
+                displayLive[i].Editor_SetIndex(displayPhotos.Count + displayVideos.Count + i);
         }
 
         [UnityEditor.MenuItem("GameObject/WitchToolkit/BlockManager", false, 0)]
