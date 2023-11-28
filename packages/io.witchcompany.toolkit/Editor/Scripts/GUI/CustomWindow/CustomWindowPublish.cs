@@ -147,6 +147,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 // 입력 제한 실행
                 CustomWindow.IsInputDisable = true;
             
+                
                 // 번들 추출
                 buildReport = WitchToolkitPipeline.PublishWithValidation(GetOption());
             
@@ -273,13 +274,23 @@ namespace WitchCompany.Toolkit.Editor.GUI
                     throw new Exception("썸네일 업데이트 실패");
                 
                 // 유니티 키 에셋 개수 정보 업데이트
-                // todo : 현재 데이터랑 비교해서 추가까지??
-                var unityKeyDetails = AssetDataValidator.GetUnityKeyDetails(curUnityKey.blockData.unityKeyDetail);
-                if (unityKeyDetails != null)
+                var updateDetails = AssetDataValidator.GetUnityKeyDetails(curUnityKey.blockData.unityKeyDetail);
+                if (updateDetails != null)
                 {
-                    var detailResult = await WitchAPI.UpdateUnityKeyDetail(unityKeyId, unityKeyDetails);
+                    var detailResult = await WitchAPI.UpdateUnityKeyDetail(unityKeyId, updateDetails, true);
+                    
                     if (!detailResult)
-                        throw new Exception("유니티 키 에셋 개수 업데이트 실패!");
+                        throw new Exception("유니티 키 에셋 개수 수정 실패!");
+                }
+                
+                // 유니티 키 에셋 개수 정보 추가
+                var addDetails = AssetDataValidator.GetCreateUnityKeyDetails(curUnityKey.blockData.unityKeyDetail);
+                if (addDetails?.Count > 0)
+                {
+                    var detailResult = await WitchAPI.UpdateUnityKeyDetail(unityKeyId, addDetails, false);
+                    
+                    if (!detailResult)
+                        throw new Exception("유니티 키 에셋 개수 추가 실패!");
                 }
                 
                 // 유니티 키 게임 랭킹 키 업데이트

@@ -55,7 +55,7 @@ namespace WitchCompany.Toolkit.Editor.Validation
                     if (displayFrame.MediaType == MediaType.Picture)
                         art.count++;
                     // 비디오
-                    else if (displayFrame.MediaType == MediaType.Video)
+                    else if (displayFrame.MediaType is MediaType.Video or MediaType.LiveVideo)
                         video.count++;
                 }
                 // 자유 배치 에셋
@@ -103,16 +103,43 @@ namespace WitchCompany.Toolkit.Editor.Validation
         
         public static List<JUnityKeyDetail> GetUnityKeyDetails(List<JUnityKeyDetail> details)
         {
-            GetAssetData();
-
             if (details == null) return null;
             
+            GetAssetData();
+            
+            var newDetails = new List<JUnityKeyDetail>();
+            // 업데이트
             foreach (var detail in details)
             {
                 assetData[detail.unityKeyType].unityKeyDetailId = detail.unityKeyDetailId;
+                newDetails.Add( assetData[detail.unityKeyType]);
+            }
+            return newDetails;
+        }
+
+        public static List<JUnityKeyDetail> GetCreateUnityKeyDetails(List<JUnityKeyDetail> details)
+        {
+            GetAssetData();
+            
+            var keys = assetData.Keys.ToList();
+
+            if (details != null)
+            {
+                foreach (var detail in details)
+                {
+                    keys.Remove(detail.unityKeyType);
+                }
             }
             
-            return assetData.Values.Where(asset => asset.count > 0).ToList();
+            // detail에 없는 값을 리스트로 전환
+            var unityKeyDetails = new List<JUnityKeyDetail>();
+            foreach (var key in keys)
+            {
+                if(assetData[key].count > 0)
+                    unityKeyDetails.Add(assetData[key]);
+            }
+
+            return unityKeyDetails;
         }
     }
 }
