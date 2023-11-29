@@ -145,15 +145,14 @@ namespace WitchCompany.Toolkit.Editor.GUI
             
                 // 입력 제한 실행
                 CustomWindow.IsInputDisable = true;
-            
                 
                 // 번들 추출
                 buildReport = WitchToolkitPipeline.PublishWithValidation(GetOption());
-            
+                
                 if (buildReport.result == JBuildReport.Result.Success)
                 {   
                     EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Uploading to server...", 1.0f);
-            
+                
                     // 번들 업로드
                     var result = await UploadBundle();
                     var resultMsg = result ? AssetBundleConfig.SuccessMsg : AssetBundleConfig.FailedPublishMsg; 
@@ -181,7 +180,6 @@ namespace WitchCompany.Toolkit.Editor.GUI
 
             // 유니티 키 조회
             var curUnityKey = await WitchAPI.GetUnityKey(option.Key);
-
             var result = false;
             // 유니티 키 없을 경우 생성
             if (curUnityKey == null)
@@ -273,7 +271,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
                     throw new Exception("썸네일 업데이트 실패");
                 
                 // 유니티 키 에셋 개수 정보 업데이트
-                var updateDetails = AssetDataValidator.GetUnityKeyDetails(curUnityKey.blockData.unityKeyDetail);
+                var updateDetails = AssetDataValidator.GetUpdateUnityKeyDetails(curUnityKey.blockData.unityKeyDetail);
                 if (updateDetails != null)
                 {
                     var detailResult = await WitchAPI.UpdateUnityKeyDetail(unityKeyId, updateDetails, true);
@@ -283,7 +281,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 }
                 
                 // 유니티 키 에셋 개수 정보 추가
-                var addDetails = AssetDataValidator.GetCreateUnityKeyDetails(curUnityKey.blockData.unityKeyDetail);
+                var addDetails = AssetDataValidator.GetAddUnityKeyDetails(curUnityKey.blockData.unityKeyDetail);
                 if (addDetails?.Count > 0)
                 {
                     var detailResult = await WitchAPI.UpdateUnityKeyDetail(unityKeyId, addDetails, false);

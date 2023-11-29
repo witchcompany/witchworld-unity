@@ -9,7 +9,7 @@ namespace WitchCompany.Toolkit.Editor.Validation
 {
     public static class AssetDataValidator
     {
-        private static JUnityKeyDetail art = new("art");
+        private static JUnityKeyDetail  art = new("art");
         private static JUnityKeyDetail video = new("video");
         private static JUnityKeyDetail freeArt = new("freeArt");
         private static JUnityKeyDetail craftingArt = new("craftingArt");
@@ -101,7 +101,7 @@ namespace WitchCompany.Toolkit.Editor.Validation
             return assetData.Values.Where(asset => asset.count > 0).ToList();
         }
         
-        public static List<JUnityKeyDetail> GetUnityKeyDetails(List<JUnityKeyDetail> details)
+        public static List<JUnityKeyDetail> GetUpdateUnityKeyDetails(List<JUnityKeyDetail> details)
         {
             if (details == null) return null;
             
@@ -111,13 +111,16 @@ namespace WitchCompany.Toolkit.Editor.Validation
             // 업데이트
             foreach (var detail in details)
             {
+                if(assetData[detail.unityKeyType].count <= 0) continue;
+                
                 assetData[detail.unityKeyType].unityKeyDetailId = detail.unityKeyDetailId;
-                newDetails.Add( assetData[detail.unityKeyType]);
+                newDetails.Add(assetData[detail.unityKeyType]);
             }
+            
             return newDetails;
         }
 
-        public static List<JUnityKeyDetail> GetCreateUnityKeyDetails(List<JUnityKeyDetail> details)
+        public static List<JUnityKeyDetail> GetAddUnityKeyDetails(List<JUnityKeyDetail> details)
         {
             GetAssetData();
             
@@ -132,14 +135,14 @@ namespace WitchCompany.Toolkit.Editor.Validation
             }
             
             // detail에 없는 값을 리스트로 전환
-            var unityKeyDetails = new List<JUnityKeyDetail>();
+            var newDetails = new List<JUnityKeyDetail>();
             foreach (var key in keys)
             {
                 if(assetData[key].count > 0)
-                    unityKeyDetails.Add(assetData[key]);
+                    newDetails.Add(assetData[key]);
             }
 
-            return unityKeyDetails;
+            return newDetails;
         }
     }
 }
