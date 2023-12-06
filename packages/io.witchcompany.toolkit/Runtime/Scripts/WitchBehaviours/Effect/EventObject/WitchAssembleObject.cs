@@ -23,8 +23,11 @@ namespace WitchCompany.Toolkit.Module
         [field: SerializeField] public List<Transform> startParts { get; private set; }
         [field: SerializeField] public List<Transform> endParts { get; private set; }
 
-        [field: Header("이름표")] 
+        [field: Header("운영 salesId")]
         [field: SerializeField] public int saleId { get; private set; }
+        [field: Header("개발 salesId")]
+        [field: SerializeField] public int salesIdDev { get; private set; }
+        [field: Header("이름표")]
         [field: SerializeField] public List<GameObject> nameTags { get; private set; }
         [HideInInspector] public TMP_Text[] names;
 
