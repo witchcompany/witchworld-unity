@@ -1,7 +1,5 @@
-using System;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.Serialization;
+using WitchCompany.Toolkit.Attribute;
 using WitchCompany.Toolkit.Scripts.WitchBehaviours;
 using WitchCompany.Toolkit.Scripts.WitchBehaviours.Interface;
 using WitchCompany.Toolkit.Validation;
@@ -13,12 +11,15 @@ namespace WitchCompany.Toolkit.Module
         public override string Description => "지정 에셋을 등록하여 전시할 수 있는 액자입니다.";
         public override string DocumentURL => "";
 
+        [field: Header("구매 가능 여부")]
+        [field: SerializeField] public SpecificDisplayType SpecificDisplayType { get; private set; }
+        
         [Header("판매 상품 ID")] 
-        [SerializeField] private int salesId;
-        [SerializeField] private int salesIdDeb;
+        [SerializeField, ShowIf(nameof(SpecificDisplayType), SpecificDisplayType.Purchasable)] private int salesId;
+        [SerializeField, ShowIf(nameof(SpecificDisplayType), SpecificDisplayType.Purchasable)] private int salesIdDeb;
         
         public override int MaximumCount => 20;
-        [field: Header("구매 유도 오브젝트")]
+        [field: Header("미구매 상태 오브젝트")]
         [field: SerializeField] public GameObject NonObject { get; private set; }
         
         // [field: Header("구매 페이지 Url")]
