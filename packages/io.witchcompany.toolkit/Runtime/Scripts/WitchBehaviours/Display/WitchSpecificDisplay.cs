@@ -15,8 +15,8 @@ namespace WitchCompany.Toolkit.Module
         [field: SerializeField] public SpecificDisplayType SpecificDisplayType { get; private set; }
         
         [Header("판매 상품 ID")] 
-        [SerializeField, ShowIf(nameof(SpecificDisplayType), SpecificDisplayType.Purchasable)] private int salesId;
-        [SerializeField, ShowIf(nameof(SpecificDisplayType), SpecificDisplayType.Purchasable)] private int salesIdDeb;
+        [SerializeField] private int salesId;
+        [SerializeField] private int salesIdDeb;
         
         public override int MaximumCount => 20;
         [field: Header("미구매 상태 오브젝트")]
