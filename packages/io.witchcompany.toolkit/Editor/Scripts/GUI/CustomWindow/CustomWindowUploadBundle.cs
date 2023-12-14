@@ -89,12 +89,21 @@ namespace WitchCompany.Toolkit.Editor.GUI
         private static async UniTaskVoid OnClickUpload()
         {
             EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Uploading to server...", 1.0f);
-            
-            var result = await UploadItem();
-            var msg = result ? AssetBundleConfig.SuccessMsg : AssetBundleConfig.FailedPublishMsg;
-            
-            EditorUtility.DisplayDialog("Witch Creator Toolkit", msg, "OK");
-            EditorUtility.ClearProgressBar();
+            try
+            {
+                var result = await UploadItem();
+                var msg = result ? AssetBundleConfig.SuccessMsg : AssetBundleConfig.FailedPublishMsg;
+
+                EditorUtility.DisplayDialog("Witch Creator Toolkit", msg, "OK");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
         }
 
         private static async UniTask<bool> UploadItem()
