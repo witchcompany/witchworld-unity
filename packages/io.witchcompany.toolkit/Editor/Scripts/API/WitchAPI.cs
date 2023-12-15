@@ -435,8 +435,6 @@ namespace WitchCompany.Toolkit.Editor.API
             var webglMobileBundle = await GetBundleData(itemData.name, bundleFolderPath, AssetBundleConfig.WebglMobile);
             var androidBundle = await GetBundleData(itemData.name, bundleFolderPath, AssetBundleConfig.Android);
             var iosBundle = await GetBundleData(itemData.name, bundleFolderPath, AssetBundleConfig.Ios);
-
-            return false;
             
             // gltf
             var gltfName = modelPath.Split("/")[^1];
