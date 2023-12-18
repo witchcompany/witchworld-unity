@@ -88,14 +88,14 @@ namespace WitchCompany.Toolkit.Editor.GUI
             new ("Settings"),
         };
         
-        private static GUIContent[] adminToolbarLabels = new GUIContent[6]
+        private static GUIContent[] adminToolbarLabels = new GUIContent[5]
         {
             new ("Authentication"),
             new ("Validation"),
             new ("Publish"),
             // new ("Admin"),
-            new("Export Bundle"),
-            new("Upload Bundle"),
+            // new("Export Bundle"),
+            new("Export & Upload Bundle"),
             new ("Setting"),
         };
 
@@ -138,12 +138,12 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 // case ControlPanelType.Admin :
                 //     CustomWindowAdmin.ShowAdmin();
                 //     break;
-                case ControlPanelType.ExportBundle :
-                    CustomWindowExportBundle.ShowExportBundle();
+                case ControlPanelType.ExportAndUploadBundle :
+                    CustomWindowExportBundle.ShowExportAndUploadBundle();
                     break;
-                case ControlPanelType.UploadBundle:
-                    CustomWindowUploadBundle.ShowUploadBundle();
-                    break;
+                // case ControlPanelType.UploadBundle:
+                //     CustomWindowUploadBundle.ShowUploadBundle();
+                //     break;
                 default: break;
             }
             EditorGUI.EndDisabledGroup();

@@ -14,10 +14,10 @@
         // // 어드민 패널
         // Admin = 3,
         // 상품 패널
-        ExportBundle = 3,
-        // 상품 업로드 패널
-        UploadBundle = 4,
+        //ExportBundle = 3,
+        // 상품 생성 및 업로드 패널
+        ExportAndUploadBundle = 3,
         // 설정 패널
-        Setting = 5
+        Setting = 4
     }
 }

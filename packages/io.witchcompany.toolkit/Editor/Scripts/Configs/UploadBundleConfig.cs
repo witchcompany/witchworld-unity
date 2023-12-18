@@ -2,17 +2,19 @@ using UnityEditor;
 
 namespace WitchCompany.Toolkit.Editor.Configs
 {
-    public class UploadBundleConfig
+    public class  UploadBundleConfig
     {
         private const string Prefs_BundleFolderPath = "upload_bundle_folder_path";
         private const string Prefs_GltfPath = "upload_bundle_gltf_path";
         private const string Prefs_PartsType = "upload_bundle_parts_type";
         private const string Prefs_DisableBody = "upload_bundle_disable_body";
-        public static string BundleFolderPath
-        {
-            get => EditorPrefs.GetString(Prefs_BundleFolderPath, "");
-            set => EditorPrefs.SetString(Prefs_BundleFolderPath, value);
-        }
+        private const string Prefs_SalesId = "upload_bundle_Sales_Id";
+        
+        // public static string BundleFolderPath
+        // {
+        //     get => EditorPrefs.GetString(Prefs_BundleFolderPath, "");
+        //     set => EditorPrefs.SetString(Prefs_BundleFolderPath, value);
+        // }
         
         public static string GltfPath
         {
@@ -30,6 +32,12 @@ namespace WitchCompany.Toolkit.Editor.Configs
         {
             get => (SkinType)EditorPrefs.GetInt(Prefs_DisableBody, 0);
             set => EditorPrefs.SetInt(Prefs_DisableBody, (int)value);
+        }
+
+        public static int SalesItemId
+        {
+            get => EditorPrefs.GetInt(Prefs_SalesId, 0);
+            set => EditorPrefs.SetInt(Prefs_SalesId, value);
         }
     }
 }

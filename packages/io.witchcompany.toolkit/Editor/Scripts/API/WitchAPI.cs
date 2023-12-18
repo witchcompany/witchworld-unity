@@ -451,7 +451,7 @@ namespace WitchCompany.Toolkit.Editor.API
                 new MultipartFormFileSection(AssetBundleConfig.Ios, iosBundle.data, iosBundle.key, ""),
             };
             
-            var response = await Request<JBlockStatus>(new RequestHelper
+            var response = await AuthSafeRequest<JBlockStatus>(new RequestHelper
             {
                 Method = "POST",
                 Uri = ApiConfig.URL("v2/toolkits/item/unity-key"),
