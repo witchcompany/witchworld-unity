@@ -139,7 +139,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 //     CustomWindowAdmin.ShowAdmin();
                 //     break;
                 case ControlPanelType.ExportAndUploadBundle :
-                    CustomWindowExportBundle.ShowExportAndUploadBundle();
+                    CustomWindowExportAndUloadBundle.ShowExportAndUploadBundle();
                     break;
                 // case ControlPanelType.UploadBundle:
                 //     CustomWindowUploadBundle.ShowUploadBundle();
