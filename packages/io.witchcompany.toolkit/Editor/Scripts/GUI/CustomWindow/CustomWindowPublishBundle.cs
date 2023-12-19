@@ -15,7 +15,7 @@ using WitchCompany.Toolkit.Validation;
 
 namespace WitchCompany.Toolkit.Editor.GUI
 {
-    public class CustomWindowExportAndUloadBundle
+    public class CustomWindowPublishBundle
     {
         private static Vector2 scrollPos;
         private static ValidationReport validationReport;
@@ -62,12 +62,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
             if(validationReport != null)
             {
                 DrawReport();
-                     
-                Debug.Log("검사 결과 출력");
-                return;
             }
-            
-            
         }
 
         private static void DrawExportBundle()
@@ -213,29 +208,27 @@ namespace WitchCompany.Toolkit.Editor.GUI
             CustomWindow.IsInputDisable = true;  
             EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Build...", 1.0f);
 
-            if (validationReport.result == ValidationReport.Result.Success)
-            {
-                for (int i = 0; i < bundleTypes.Length; i++)
-                {
-                    buildReport = PrefabBuildPipeline.BuildReport(bundleTypes[i]);
-                    
-                    if (buildReport == null || buildReport.result != JBuildReport.Result.Success)
-                    {
-                        // 번들 추출 실패한 경우
-                        // 팝업 메시지 띄우기
-                        var msg = "빌드 실패";
-                        EditorUtility.DisplayDialog("Witch Creator Toolkit", msg, "OK");
-                        
-                        EditorUtility.ClearProgressBar();
-                        CustomWindow.IsInputDisable = false;
-                        
-                        return false;
-                    } 
-                }
-            }
-            else
+            if (validationReport.result != ValidationReport.Result.Success)
             {
                 return false;
+            }
+
+            foreach (var bundleType in bundleTypes)
+            {
+                buildReport = PrefabBuildPipeline.BuildReport(bundleType);
+                
+                if (buildReport == null || buildReport.result != JBuildReport.Result.Success)
+                {
+                    // 번들 추출 실패한 경우
+                    // 팝업 메시지 띄우기
+                    var msg = "빌드 실패";
+                    EditorUtility.DisplayDialog("Witch Creator Toolkit", msg, "OK");
+                    
+                    EditorUtility.ClearProgressBar();
+                    CustomWindow.IsInputDisable = false;
+                    
+                    return false;
+                }
             }
             
             EditorUtility.ClearProgressBar();
