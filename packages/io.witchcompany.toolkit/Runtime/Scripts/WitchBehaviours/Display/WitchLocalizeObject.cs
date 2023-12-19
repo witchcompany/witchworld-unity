@@ -1,5 +1,6 @@
 using UnityEngine;
 using WitchCompany.Toolkit.Module;
+using WitchCompany.Toolkit.Validation;
 
 namespace WitchCompany.Toolkit
 {
@@ -14,5 +15,15 @@ namespace WitchCompany.Toolkit
         [field: Header("3D 오브젝트")]
         [field: SerializeField] public GameObject KoObject { get; private set; }
         [field: SerializeField] public GameObject EnObject { get; private set; }
+
+#if UNITY_EDITOR
+        public override ValidationError ValidationCheck()
+        {
+            if (KoObject == null) return NullError(nameof(KoObject));
+            if (EnObject == null) return NullError(nameof(EnObject));
+
+            return base.ValidationCheck();
+        }
     }
+#endif
 }
