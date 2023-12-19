@@ -204,7 +204,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
             CustomWindow.IsInputDisable = true;  
             EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Build...", 1.0f);
 
-            validationReport = PrefabValidator.ValidationCheck();
+            validationReport = ItemBuildValidator.ValidationCheck();
 
             if (validationReport.result == ValidationReport.Result.Success)
             {

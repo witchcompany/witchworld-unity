@@ -40,19 +40,9 @@ namespace WitchCompany.Toolkit.Editor.GUI
             
             if (GUILayout.Button("Export & Upload"))
             {
-                CustomWindow.IsInputDisable = true;
-                
                 // 1. 검사
                 validationReport = null;
-                validationReport = PrefabValidator.ValidationCheck();
-
-                // 검사 결과가 false 일 경우
-                if (validationReport.result != ValidationReport.Result.Success)
-                {
-                    // DrawReport() 보여주기
-                    DrawReport();
-                    return;
-                }
+                validationReport = ItemBuildValidator.ValidationCheck();
                 
                 // 2. 번들 추출
                 // 검사 결과 true일 경우 번들 추출
@@ -67,11 +57,17 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 CustomWindow.IsInputDisable = false;
                 
                 // 업로드 결과 보여주기
-                
-                //OnClickBuild();
-                
-                //OnClickUpload().Forget();
             }
+            
+            if(validationReport != null)
+            {
+                DrawReport();
+                     
+                Debug.Log("검사 결과 출력");
+                return;
+            }
+            
+            
         }
 
         private static void DrawExportBundle()
@@ -114,16 +110,6 @@ namespace WitchCompany.Toolkit.Editor.GUI
         {
             GUILayout.Label("Upload Bundle", EditorStyles.boldLabel);
             EditorGUILayout.BeginVertical("box");
-
-            // Bundle Folder
-            // using (new GUILayout.HorizontalScope())
-            // {
-            //     EditorGUILayout.TextField("Bundle Folder", UploadBundleConfig.BundleFolderPath);
-            //     if (GUILayout.Button("Select", GUILayout.Width(100)))
-            //     {
-            //         UploadBundleConfig.BundleFolderPath = EditorUtility.OpenFolderPanel("Witch Creator Toolkit", UploadBundleConfig.BundleFolderPath,"");
-            //     }
-            // }
             
             // Model File
             using (new GUILayout.HorizontalScope())
@@ -159,11 +145,11 @@ namespace WitchCompany.Toolkit.Editor.GUI
 
             using (var check = new EditorGUI.ChangeCheckScope())
             {
-                var salesId = EditorGUILayout.IntField("Sales Id", UploadBundleConfig.SalesItemId);
+                var salesItemId = EditorGUILayout.IntField("Sales Item Id", UploadBundleConfig.SalesItemId);
 
                 if (check.changed)
                 {
-                    UploadBundleConfig.SalesItemId = salesId;
+                    UploadBundleConfig.SalesItemId = salesItemId;
                 }
             }
             EditorGUILayout.EndVertical();
@@ -180,6 +166,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
             {
                 var path = Path.Combine(ExportBundleConfig.BundleExportPath, ExportBundleConfig.Prefab.name);
                 EditorGUILayout.LabelField("Path", path);
+                EditorGUILayout.LabelField("UploadAt", buildReport.BuildEndedAt.ToString());
             }
             else
             {
@@ -206,7 +193,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
 
                     // 로그 종류에 따라 버튼 style 변경
                     if (error.context == null)
-                        GUILayout.Label(error.message, CustomWindow.LogTextStyle);
+                        GUILayout.Label(error.message, CustomWindow.LogButtonStyle);
                     else
                     {
                         if (GUILayout.Button(error.message, CustomWindow.LogButtonStyle))
@@ -223,7 +210,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
             
         private static bool OnClickBuild()
         {
-            // CustomWindow.IsInputDisable = true;  
+            CustomWindow.IsInputDisable = true;  
             EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Build...", 1.0f);
 
             if (validationReport.result == ValidationReport.Result.Success)
@@ -238,35 +225,48 @@ namespace WitchCompany.Toolkit.Editor.GUI
                         // 팝업 메시지 띄우기
                         var msg = "빌드 실패";
                         EditorUtility.DisplayDialog("Witch Creator Toolkit", msg, "OK");
+                        
+                        EditorUtility.ClearProgressBar();
+                        CustomWindow.IsInputDisable = false;
+                        
                         return false;
-                    }
+                    } 
                 }
             }
+            else
+            {
+                return false;
+            }
+            
+            EditorUtility.ClearProgressBar();
+            CustomWindow.IsInputDisable = false;
 
             return true;
-            // if(validationReport != null) return;
-
-            // var msg = buildReport != null || buildReport.result == JBuildReport.Result.Success ? "빌드 성공" : "빌드 실패";
         }
         
         private static async UniTaskVoid OnClickUpload()
         {
             EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Uploading to server...", 1.0f);
+            
             try
             {
                 var result = await UploadItem();
+                if (result)
+                {
+                    DeleteBundleFile();
+                }
+                
                 var msg = result ? AssetBundleConfig.SuccessMsg : AssetBundleConfig.FailedPublishMsg;
-
                 EditorUtility.DisplayDialog("Witch Creator Toolkit", msg, "OK");
             }
             catch (Exception e)
             {
                 Debug.LogError(e);
             }
-            // finally
-            // {
-            //     EditorUtility.ClearProgressBar();
-            // }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
         }
         
         private static async UniTask<bool> UploadItem()
@@ -326,6 +326,23 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 Path.Combine(ExportBundleConfig.BundleExportPath, bundleName), UploadBundleConfig.GltfPath);
             
             return result;
+        }
+
+        private static void DeleteBundleFile()
+        {
+            var bundleName = ExportBundleConfig.Prefab.name;
+            var bundleFolderPath = Path.Combine(ExportBundleConfig.BundleExportPath, bundleName);
+
+            foreach (var bundleType in bundleTypes)
+            {
+                var bundleFileName = $"{bundleName}_{bundleType}.bundle".ToLower();
+                var manifestFileName = $"{bundleFileName}.manifest".ToLower();
+
+                var bundleFilePath = Path.Combine(bundleFolderPath, bundleFileName);
+                var manifestPath = Path.Combine(bundleFolderPath, manifestFileName);
+                File.Delete(bundleFilePath);
+                File.Delete(manifestPath);
+            }
         }
     }
 }
