@@ -40,9 +40,13 @@ namespace WitchCompany.Toolkit.Editor.GUI
             
             if (GUILayout.Button("Export & Upload"))
             {
-                // 1. 검사
+                // 리포트 초기화
                 validationReport = null;
+                buildReport = null;
+                
+                // 1. 검사
                 validationReport = ItemBuildValidator.ValidationCheck();
+
                 
                 // 2. 번들 추출
                 // 검사 결과 true일 경우 번들 추출
@@ -50,13 +54,11 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 {
                     // 3. 번들 업로드
                     // 번들 추출 성공한 경우 번들 업로드
-                    OnClickUpload().Forget();
+                    UploadBundle().Forget();
                 }
                 
                 EditorUtility.ClearProgressBar();
                 CustomWindow.IsInputDisable = false;
-                
-                // 업로드 결과 보여주기
             }
             
             if(validationReport != null)
@@ -155,13 +157,14 @@ namespace WitchCompany.Toolkit.Editor.GUI
         {
             GUILayout.Label("Export Report", EditorStyles.boldLabel);
             EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("Result", validationReport.result.ToString());
+            EditorGUILayout.LabelField("Result", buildReport?.result == JBuildReport.Result.Success ? "Success" : "Fail");
+            //EditorGUILayout.LabelField("Result", validationReport.result.ToString());
 
             if (validationReport.result == ValidationReport.Result.Success)
             {
                 var path = Path.Combine(ExportBundleConfig.BundleExportPath, ExportBundleConfig.Prefab.name);
                 EditorGUILayout.LabelField("Path", path);
-                EditorGUILayout.LabelField("UploadAt", buildReport.BuildEndedAt.ToString());
+                EditorGUILayout.LabelField("UploadAt", buildReport?.BuildEndedAt.ToString());
             }
             else
             {
@@ -237,7 +240,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
             return true;
         }
         
-        private static async UniTaskVoid OnClickUpload()
+        private static async UniTaskVoid UploadBundle()
         {
             EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Uploading to server...", 1.0f);
             
