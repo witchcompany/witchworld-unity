@@ -24,6 +24,6 @@ namespace WitchCompany.Toolkit
 
             return base.ValidationCheck();
         }
-    }
 #endif
+    }
 }
