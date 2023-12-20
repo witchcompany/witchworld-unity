@@ -40,25 +40,37 @@ namespace WitchCompany.Toolkit.Editor.GUI
             
             if (GUILayout.Button("Export & Upload"))
             {
-                // 리포트 초기화
-                validationReport = null;
-                buildReport = null;
-                
-                // 1. 검사
-                validationReport = ItemBuildValidator.ValidationCheck();
+                // CustomWindow.IsInputDisable = true;  
+                // EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Validation...", 0.3f);
+                //
+                // // 리포트 초기화
+                // validationReport = null;
+                // buildReport = null;
+                //
+                // // 1. 검사
+                // validationReport = ItemBuildValidator.ValidationCheck();
+                //
+                //
+                // // 2. 번들 추출
+                // // 검사 결과 true일 경우 번들 추출
+                // if (TryGetBundle())
+                // {
+                //     EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Upload Bundle...", 0.9f);
+                //     // 3. 번들 업로드
+                //     // 번들 추출 성공한 경우 번들 업로드
+                //     UploadBundle().Forget();
+                // }
+                // else
+                // {
+                //     var msg = "빌드 실패";
+                //     EditorUtility.DisplayDialog("Witch Creator Toolkit", msg, "OK");
+                // }
+                //
+                // EditorUtility.ClearProgressBar();
+                // CustomWindow.IsInputDisable = false;
 
-                
-                // 2. 번들 추출
-                // 검사 결과 true일 경우 번들 추출
-                if (OnClickBuild())
-                {
-                    // 3. 번들 업로드
-                    // 번들 추출 성공한 경우 번들 업로드
-                    UploadBundle().Forget();
-                }
-                
-                EditorUtility.ClearProgressBar();
-                CustomWindow.IsInputDisable = false;
+                OnClickPublish().Forget();
+
             }
             
             if(validationReport != null)
@@ -67,6 +79,51 @@ namespace WitchCompany.Toolkit.Editor.GUI
             }
         }
 
+        private static async UniTaskVoid OnClickPublish()
+        {
+            CustomWindow.IsInputDisable = true;  
+                
+            // 리포트 초기화
+            validationReport = null;
+            buildReport = null;
+
+            // 1. 검사
+            EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Validation...", 0.3f);
+
+            validationReport = ItemBuildValidator.ValidationCheck();
+
+            var isSuccessValidation = validationReport.result == ValidationReport.Result.Success;
+            var message = "";
+            
+            // 2. 번들 추출
+            // 검사 결과 true일 경우 번들 추출
+            if (isSuccessValidation)
+            {
+                EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Build...", 0.6f);
+                var isSuccessBuild = TryGetBundle();
+                
+                // 3. 번들 업로드
+                // 번들 추출 성공한 경우 번들 업로드
+                if (isSuccessBuild)
+                {
+                    EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Upload Bundle...", 0.9f);
+                    
+                    isSuccessBuild = await TryUploadBundle();
+                    message = isSuccessBuild ? AssetBundleConfig.SuccessMsg : AssetBundleConfig.FailedPublishMsg;
+                }
+                else
+                    message = "번들 추출 실패했습니다.";
+            }
+            else
+                message = "유효성 검사 실패\n\nReport를 확인해주세요.";
+            
+            EditorUtility.DisplayDialog("Witch Creator Toolkit", message, "OK");
+            
+            EditorUtility.ClearProgressBar();
+            CustomWindow.IsInputDisable = false;
+        }
+        
+        
         private static void DrawExportBundle()
         {
             GUILayout.Label("Export Bundle", EditorStyles.boldLabel);
@@ -206,16 +263,21 @@ namespace WitchCompany.Toolkit.Editor.GUI
             EditorGUILayout.EndVertical();
         }
             
-        private static bool OnClickBuild()
+        /// <summary>
+        /// 번들 추출 시도 함수
+        /// </summary>
+        /// <returns></returns>
+        private static bool TryGetBundle()
         {
-            CustomWindow.IsInputDisable = true;  
-            EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Build...", 1.0f);
+            // 유효성 검사 결과가 성공이 아닐 경우 종료
+            // if (validationReport.result != ValidationReport.Result.Success)
+            //     return false;
 
-            if (validationReport.result != ValidationReport.Result.Success)
-            {
-                return false;
-            }
+            // 유효성 검사가 성공일 경우 번들 추출 진행
+            // CustomWindow.IsInputDisable = true;  
+            // EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Build...", 0.6f);
 
+            // todo : 타입별로 빌드 시 중간에 에러난 경우 기존 추출된 파일도 삭제하는 로직 필요할 듯
             foreach (var bundleType in bundleTypes)
             {
                 buildReport = PrefabBuildPipeline.BuildReport(bundleType);
@@ -224,25 +286,25 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 {
                     // 번들 추출 실패한 경우
                     // 팝업 메시지 띄우기
-                    var msg = "빌드 실패";
-                    EditorUtility.DisplayDialog("Witch Creator Toolkit", msg, "OK");
+                    // var msg = "빌드 실패";
+                    // EditorUtility.DisplayDialog("Witch Creator Toolkit", msg, "OK");
                     
-                    EditorUtility.ClearProgressBar();
-                    CustomWindow.IsInputDisable = false;
+                    // EditorUtility.ClearProgressBar();
+                    // CustomWindow.IsInputDisable = false;
                     
                     return false;
                 }
             }
             
-            EditorUtility.ClearProgressBar();
-            CustomWindow.IsInputDisable = false;
+            // EditorUtility.ClearProgressBar();
+            // CustomWindow.IsInputDisable = false;
 
             return true;
         }
         
-        private static async UniTaskVoid UploadBundle()
+        private static async UniTask<bool> TryUploadBundle()
         {
-            EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Uploading to server...", 1.0f);
+            // EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Uploading to server...", 0.9f);
             
             try
             {
@@ -251,9 +313,8 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 {
                     DeleteBundleFile();
                 }
-                
-                var msg = result ? AssetBundleConfig.SuccessMsg : AssetBundleConfig.FailedPublishMsg;
-                EditorUtility.DisplayDialog("Witch Creator Toolkit", msg, "OK");
+
+                return result;
             }
             catch (Exception e)
             {
@@ -263,6 +324,8 @@ namespace WitchCompany.Toolkit.Editor.GUI
             {
                 EditorUtility.ClearProgressBar();
             }
+
+            return false;
         }
         
         private static async UniTask<bool> UploadItem()
@@ -336,6 +399,11 @@ namespace WitchCompany.Toolkit.Editor.GUI
 
                 var bundleFilePath = Path.Combine(bundleFolderPath, bundleFileName);
                 var manifestPath = Path.Combine(bundleFolderPath, manifestFileName);
+                
+                
+                // todo : 해당 경로에 파일이 있을 때만 삭제하도록 수정
+                // if(File.Exists(bundleFilePath))
+                
                 File.Delete(bundleFilePath);
                 File.Delete(manifestPath);
             }
