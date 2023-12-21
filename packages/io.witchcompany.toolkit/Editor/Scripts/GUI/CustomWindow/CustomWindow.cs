@@ -92,10 +92,10 @@ namespace WitchCompany.Toolkit.Editor.GUI
         {
             new ("Authentication"),
             new ("Validation"),
-            new ("Publish"),
+            new ("PublishBlock"),
             // new ("Admin"),
             // new("Export Bundle"),
-            new("Export & Upload Bundle"),
+            new("PublishGearItem"),
             new ("Setting"),
         };
 
@@ -129,7 +129,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 case ControlPanelType.Validation :
                     CustomWindowValidation.ShowValidation();
                     break;
-                case ControlPanelType.Publish: 
+                case ControlPanelType.PublishBlock: 
                     CustomWindowPublish.ShowPublish();
                     break;
                 case ControlPanelType.Setting : 
@@ -138,8 +138,8 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 // case ControlPanelType.Admin :
                 //     CustomWindowAdmin.ShowAdmin();
                 //     break;
-                case ControlPanelType.ExportAndUploadBundle :
-                    CustomWindowPublishBundle.ShowExportAndUploadBundle();
+                case ControlPanelType.PublishGearItem :
+                    CustomWindowPublishGearItem.ShowPublishGearItem();
                     break;
                 // case ControlPanelType.UploadBundle:
                 //     CustomWindowUploadBundle.ShowUploadBundle();

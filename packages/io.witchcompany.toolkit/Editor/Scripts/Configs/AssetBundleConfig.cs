@@ -12,7 +12,10 @@ namespace WitchCompany.Toolkit.Editor.Configs
         public const string ValidBlockNameRegex = @"^.{1,20}$";
         // 최대 에셋번들 사이즈 (128MB)
         public const uint MaxSizeByte = 128 * 1024 * 1024;
-
+        
+        // Display Config
+        public const string ToolkitTitle = "Witch Creator Toolkit";
+        
         public const string Standalone = "standalone";
         public const string Webgl = "webgl";
         public const string Android = "android";

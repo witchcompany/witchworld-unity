@@ -22,7 +22,7 @@ namespace WitchCompany.Toolkit.Editor.Configs
             set => EditorPrefs.SetString(Prefs_GltfPath, value);
         }
 
-        public static GearType PartsType
+        public static GearType GearType
         {
             get => (GearType)EditorPrefs.GetInt(Prefs_PartsType, 0);
             set => EditorPrefs.SetInt(Prefs_PartsType, (int)value);

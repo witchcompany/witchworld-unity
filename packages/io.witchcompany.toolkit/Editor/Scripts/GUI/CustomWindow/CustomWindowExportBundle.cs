@@ -114,11 +114,11 @@ namespace WitchCompany.Toolkit.Editor.GUI
             // Model Type
             using (var check = new EditorGUI.ChangeCheckScope())
             {
-                var modelType = (GearType)EditorGUILayout.EnumPopup("Parts Type", UploadBundleConfig.PartsType);
+                var modelType = (GearType)EditorGUILayout.EnumPopup("Parts Type", UploadBundleConfig.GearType);
 
                 if (check.changed)
                 {
-                    UploadBundleConfig.PartsType = modelType;
+                    UploadBundleConfig.GearType = modelType;
                 }
             }
             
@@ -259,7 +259,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
             // 번들 이름
             // var bundleName = UploadBundleConfig.BundleFolderPath.Split("/")[^1];
             var bundleName = ExportBundleConfig.Prefab.name;
-            var typeName = UploadBundleConfig.PartsType.ToString().Replace("Accessory", "Accessory_").ToLower();
+            var typeName = UploadBundleConfig.GearType.ToString().Replace("Accessory", "Accessory_").ToLower();
             
             // 아이템 정보
             var itemData = new JItemData
