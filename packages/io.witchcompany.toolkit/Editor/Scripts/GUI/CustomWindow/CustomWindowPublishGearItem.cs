@@ -20,6 +20,8 @@ namespace WitchCompany.Toolkit.Editor.GUI
         private static Vector2 scrollPos;
         private static ValidationReport validationReport;
         private static JBuildReport buildReport;
+        private static GearType curGearType;
+        
         
         private static string[] bundleTypes =
         {
@@ -129,6 +131,19 @@ namespace WitchCompany.Toolkit.Editor.GUI
                         // prefab 이름 저장
                         ExportBundleConfig.Prefab = prefab;
                         validationReport = null;
+                        
+                        // Prefab에 저장된 Witch Gear Item을 가져온다.
+                        if (ExportBundleConfig.Prefab != null)
+                        {
+                            // Witch Gear Item이 없다면 Prefab란을 None으로 만든다.
+                            if (!ExportBundleConfig.Prefab.TryGetComponent(out WitchGearItem gear))
+                                ExportBundleConfig.Prefab = null;
+                            else
+                            {
+                                UploadBundleConfig.GearType = gear.GearType;
+                                UploadBundleConfig.DisableBody = DisableBodyToGearType[(int)gear.GearType];
+                            }
+                        }
                     }
                 }
             }
