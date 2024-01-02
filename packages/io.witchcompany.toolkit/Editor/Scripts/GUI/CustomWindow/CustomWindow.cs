@@ -92,10 +92,10 @@ namespace WitchCompany.Toolkit.Editor.GUI
         {
             new ("Authentication"),
             new ("Validation"),
-            new ("PublishBlock"),
+            new ("Publish Block"),
             // new ("Admin"),
             // new("Export Bundle"),
-            new("PublishGearItem"),
+            new("Publish Gear Item"),
             new ("Setting"),
         };
 
