@@ -15,11 +15,13 @@ using WitchCompany.Toolkit.Validation;
 
 namespace WitchCompany.Toolkit.Editor.GUI
 {
-    public class CustomWindowExportBundle
+    public class CustomWindowPublishGearItem
     {
         private static Vector2 scrollPos;
         private static ValidationReport validationReport;
         private static JBuildReport buildReport;
+        private static GearType curGearType;
+        
         
         private static string[] bundleTypes =
         {
@@ -30,30 +32,93 @@ namespace WitchCompany.Toolkit.Editor.GUI
             AssetBundleConfig.Ios,
             // AssetBundleConfig.Vr
         };
-        
-        public static void ShowExportAndUploadBundle()
+
+        private static readonly SkinType[] DisableBodyToGearType =
         {
+            SkinType.None,                                                                                           // GearType.Head
+            SkinType.Top | SkinType.RightShoulder | SkinType.LeftShoulder,                                           // GearType.Top
+            SkinType.Top | SkinType.Bottom | SkinType.LeftShoulder | SkinType.LeftArm | SkinType.RightShoulder 
+            | SkinType.RightArm,                                                                                     // GearType.OnePiece
+            SkinType.Bottom,                                                                                         // GearType.Bottom
+            SkinType.LeftFoot | SkinType.RightFoot,                                                                  // GearType.Shoes
+            SkinType.None,                                                                                           // GearType.Hand
+            SkinType.None,                                                                                           // GearType.AccessoryFace
+            SkinType.None,                                                                                           // GearType.AccessoryNeck
+            SkinType.None,                                                                                           // GearType.AccessoryBack
+            SkinType.Top | SkinType.Bottom | SkinType.LeftShoulder | SkinType.LeftArm | SkinType.LeftUpLeg |
+            SkinType.LeftLeg | SkinType.RightShoulder | SkinType.RightArm | SkinType.RightUpLeg | SkinType.RightLeg  // GearType.AccessoryBodySuit
+        };
+        
+        public static void ShowPublishGearItem()
+        {
+            GUILayout.Label("Publish", EditorStyles.boldLabel);
+            EditorGUILayout.BeginVertical("box");
+            
             DrawExportBundle();
             DrawUploadBundle();
             
+            EditorGUILayout.EndVertical();
+            
             GUILayout.Space(10);
             
-            if (GUILayout.Button("Export & Upload"))
+            if (GUILayout.Button("Publish"))
             {
-                OnClickBuild();
-                OnClickUpload().Forget();
+                OnClickPublish().Forget();
             }
-
-            if (validationReport != null)
+            
+            if(validationReport != null)
             {
                 DrawReport();
             }
         }
 
+        private static async UniTaskVoid OnClickPublish()
+        {
+            CustomWindow.IsInputDisable = true;  
+                
+            // 리포트 초기화
+            validationReport = null;
+            buildReport = null;
+
+            // 1. 검사
+            EditorUtility.DisplayProgressBar(AssetBundleConfig.ToolkitTitle, "Validation...", 0.3f);
+
+            validationReport = ItemBuildValidator.ValidationCheck();
+
+            var isSuccessValidation = validationReport.result == ValidationReport.Result.Success;
+            var message = "";
+            
+            // 2. 번들 추출
+            // 검사 결과 true일 경우 번들 추출
+            if (isSuccessValidation)
+            {
+                EditorUtility.DisplayProgressBar(AssetBundleConfig.ToolkitTitle, "Build...", 0.6f);
+                var isSuccessBuild = TryGetBundle();
+                
+                // 3. 번들 업로드
+                // 번들 추출 성공한 경우 번들 업로드
+                if (isSuccessBuild)
+                {
+                    EditorUtility.DisplayProgressBar(AssetBundleConfig.ToolkitTitle, "Upload Bundle...", 0.9f);
+                    
+                    isSuccessBuild = await TryUploadBundle();
+                    message = isSuccessBuild ? AssetBundleConfig.SuccessMsg : AssetBundleConfig.FailedPublishMsg;
+                }
+                else
+                    message = "번들 추출 실패했습니다.";
+            }
+            else
+                message = "유효성 검사 실패\n\nReport를 확인해주세요.";
+            
+            EditorUtility.DisplayDialog("Witch Creator Toolkit", message, "OK");
+            
+            EditorUtility.ClearProgressBar();
+            CustomWindow.IsInputDisable = false;
+        }
+        
+        
         private static void DrawExportBundle()
         {
-            GUILayout.Label("Export Bundle", EditorStyles.boldLabel);
-            EditorGUILayout.BeginVertical("box");
 
             var check = new EditorGUI.ChangeCheckScope();
             using (new EditorGUILayout.HorizontalScope())
@@ -66,6 +131,19 @@ namespace WitchCompany.Toolkit.Editor.GUI
                         // prefab 이름 저장
                         ExportBundleConfig.Prefab = prefab;
                         validationReport = null;
+                        
+                        // Prefab에 저장된 Witch Gear Item을 가져온다.
+                        if (ExportBundleConfig.Prefab != null)
+                        {
+                            // Witch Gear Item이 없다면 Prefab란을 None으로 만든다.
+                            if (!ExportBundleConfig.Prefab.TryGetComponent(out WitchGearItem gear))
+                                ExportBundleConfig.Prefab = null;
+                            else
+                            {
+                                UploadBundleConfig.GearType = gear.GearType;
+                                UploadBundleConfig.DisableBody = DisableBodyToGearType[(int)gear.GearType];
+                            }
+                        }
                     }
                 }
             }
@@ -83,24 +161,11 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 }
             }
             
-            EditorGUILayout.EndVertical();
+            // EditorGUILayout.EndVertical();
         }
         
         private static void DrawUploadBundle()
         {
-            GUILayout.Label("Upload Bundle", EditorStyles.boldLabel);
-            EditorGUILayout.BeginVertical("box");
-
-            // Bundle Folder
-            // using (new GUILayout.HorizontalScope())
-            // {
-            //     EditorGUILayout.TextField("Bundle Folder", UploadBundleConfig.BundleFolderPath);
-            //     if (GUILayout.Button("Select", GUILayout.Width(100)))
-            //     {
-            //         UploadBundleConfig.BundleFolderPath = EditorUtility.OpenFolderPanel("Witch Creator Toolkit", UploadBundleConfig.BundleFolderPath,"");
-            //     }
-            // }
-            
             // Model File
             using (new GUILayout.HorizontalScope())
             {
@@ -109,22 +174,27 @@ namespace WitchCompany.Toolkit.Editor.GUI
                 {
                     UploadBundleConfig.GltfPath = EditorUtility.OpenFilePanel("Witch Creator Toolkit", "", "gltf");
                 }
-            } 
+            }
             
-            // Model Type
+            // Gear Type
             using (var check = new EditorGUI.ChangeCheckScope())
             {
-                var modelType = (GearType)EditorGUILayout.EnumPopup("Parts Type", UploadBundleConfig.GearType);
-
+                var gearType = (GearType)EditorGUILayout.EnumPopup("Gear Type", UploadBundleConfig.GearType);
+                // 기어 타입 변경될 경우
                 if (check.changed)
                 {
-                    UploadBundleConfig.GearType = modelType;
+                    UploadBundleConfig.GearType = gearType; 
+                    
+                    // 비활성화 신체를 지정된 값으로 변경
+                    UploadBundleConfig.DisableBody = (SkinType)EditorGUILayout.EnumFlagsField("Disable Body", DisableBodyToGearType[(int)gearType]);
                 }
             }
             
             // Disable Body
             using (var check = new EditorGUI.ChangeCheckScope())
             {
+                // var partsIndex = (int)UploadBundleConfig.PartsType;
+                
                 var disableBody = (SkinType)EditorGUILayout.EnumFlagsField("Disable Body", UploadBundleConfig.DisableBody);
 
                 if (check.changed)
@@ -135,27 +205,28 @@ namespace WitchCompany.Toolkit.Editor.GUI
 
             using (var check = new EditorGUI.ChangeCheckScope())
             {
-                var salesId = EditorGUILayout.IntField("Sales Id", UploadBundleConfig.SalesItemId);
+                var salesItemId = EditorGUILayout.IntField("Sales Item Id", UploadBundleConfig.SalesItemId);
 
                 if (check.changed)
                 {
-                    UploadBundleConfig.SalesItemId = salesId;
+                    UploadBundleConfig.SalesItemId = salesItemId;
                 }
             }
-            EditorGUILayout.EndVertical();
+            
         }
 
 
         private static void DrawReport()
         {
-            GUILayout.Label("Export Report", EditorStyles.boldLabel);
+            GUILayout.Label("Publish Report", EditorStyles.boldLabel);
             EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("Result", validationReport.result.ToString());
+            EditorGUILayout.LabelField("Result", buildReport?.result == JBuildReport.Result.Success ? "Success" : "Fail");
+            //EditorGUILayout.LabelField("Result", validationReport.result.ToString());
 
             if (validationReport.result == ValidationReport.Result.Success)
             {
                 var path = Path.Combine(ExportBundleConfig.BundleExportPath, ExportBundleConfig.Prefab.name);
-                EditorGUILayout.LabelField("Path", path);
+                EditorGUILayout.LabelField("UploadAt", buildReport?.BuildEndedAt.ToString());
             }
             else
             {
@@ -182,7 +253,7 @@ namespace WitchCompany.Toolkit.Editor.GUI
 
                     // 로그 종류에 따라 버튼 style 변경
                     if (error.context == null)
-                        GUILayout.Label(error.message, CustomWindow.LogTextStyle);
+                        GUILayout.Label(error.message, CustomWindow.LogButtonStyle);
                     else
                     {
                         if (GUILayout.Button(error.message, CustomWindow.LogButtonStyle))
@@ -197,42 +268,36 @@ namespace WitchCompany.Toolkit.Editor.GUI
             EditorGUILayout.EndVertical();
         }
             
-        private static void OnClickBuild()
+        /// <summary>
+        /// 번들 추출 시도 함수
+        /// </summary>
+        /// <returns></returns>
+        private static bool TryGetBundle()
         {
-            validationReport = null;
-            
-            CustomWindow.IsInputDisable = true;  
-            EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Build...", 1.0f);
-
-            validationReport = ItemBuildValidator.ValidationCheck();
-
-            if (validationReport.result == ValidationReport.Result.Success)
+            foreach (var bundleType in bundleTypes)
             {
-                buildReport = PrefabBuildPipeline.BuildReport(AssetBundleConfig.Standalone);
-                buildReport = PrefabBuildPipeline.BuildReport(AssetBundleConfig.Webgl);
-                buildReport = PrefabBuildPipeline.BuildReport(AssetBundleConfig.WebglMobile);
-                buildReport = PrefabBuildPipeline.BuildReport(AssetBundleConfig.Android);
-                buildReport = PrefabBuildPipeline.BuildReport(AssetBundleConfig.Ios);
+                buildReport = PrefabBuildPipeline.BuildReport(bundleType);
+                
+                if (buildReport == null || buildReport.result != JBuildReport.Result.Success)
+                {
+                    DeleteBundleFile();
+                    return false;
+                }
             }
-            
-            EditorUtility.ClearProgressBar();
-            CustomWindow.IsInputDisable = false;
-
-            if(validationReport != null) return;
-            
-            var msg = buildReport.result == JBuildReport.Result.Success ? "빌드 성공" : "빌드 실패";
-            EditorUtility.DisplayDialog("Witch Creator Toolkit", msg, "OK");
+            return true;
         }
         
-        private static async UniTaskVoid OnClickUpload()
+        private static async UniTask<bool> TryUploadBundle()
         {
-            EditorUtility.DisplayProgressBar("Witch Creator Toolkit", "Uploading to server...", 1.0f);
             try
             {
                 var result = await UploadItem();
-                var msg = result ? AssetBundleConfig.SuccessMsg : AssetBundleConfig.FailedPublishMsg;
+                if (result)
+                {
+                    DeleteBundleFile();
+                }
 
-                EditorUtility.DisplayDialog("Witch Creator Toolkit", msg, "OK");
+                return result;
             }
             catch (Exception e)
             {
@@ -242,6 +307,8 @@ namespace WitchCompany.Toolkit.Editor.GUI
             {
                 EditorUtility.ClearProgressBar();
             }
+
+            return false;
         }
         
         private static async UniTask<bool> UploadItem()
@@ -302,6 +369,24 @@ namespace WitchCompany.Toolkit.Editor.GUI
             
             return result;
         }
+
+        private static void DeleteBundleFile()
+        {
+            var bundleName = ExportBundleConfig.Prefab.name;
+            var bundleFolderPath = Path.Combine(ExportBundleConfig.BundleExportPath, bundleName);
+
+            foreach (var bundleType in bundleTypes)
+            {
+                var bundleFileName = $"{bundleName}_{bundleType}.bundle".ToLower();
+                var manifestFileName = $"{bundleFileName}.manifest".ToLower();
+
+                var bundleFilePath = Path.Combine(bundleFolderPath, bundleFileName);
+                var manifestPath = Path.Combine(bundleFolderPath, manifestFileName);
+                
+                if (!File.Exists(bundleFilePath)) continue;
+                File.Delete(bundleFilePath);
+                File.Delete(manifestPath);
+            }
+        }
     }
-    
 }

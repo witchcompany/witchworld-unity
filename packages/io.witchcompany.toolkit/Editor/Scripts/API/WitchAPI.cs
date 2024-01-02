@@ -404,8 +404,15 @@ namespace WitchCompany.Toolkit.Editor.API
         {
             var key = $"{name}_{platform}.bundle".ToLower();
             var bundlePath = Path.Combine(folderPath, key);
+
+            var data = await FileTool.GetByte(bundlePath);
+
+            if (data == null || data.Length == 0)
+            {
+                throw new FileNotFoundException("번들 파일을 찾을 수 없습니다.");
+            }
             
-            return (key, await FileTool.GetByte(bundlePath));
+            return (key, data);
         }
         
         
@@ -428,7 +435,7 @@ namespace WitchCompany.Toolkit.Editor.API
             var webglMobileBundle = await GetBundleData(itemData.name, bundleFolderPath, AssetBundleConfig.WebglMobile);
             var androidBundle = await GetBundleData(itemData.name, bundleFolderPath, AssetBundleConfig.Android);
             var iosBundle = await GetBundleData(itemData.name, bundleFolderPath, AssetBundleConfig.Ios);
-   
+            
             // gltf
             var gltfName = modelPath.Split("/")[^1];
             var gltfData = await FileTool.GetByte(modelPath);
@@ -444,7 +451,7 @@ namespace WitchCompany.Toolkit.Editor.API
                 new MultipartFormFileSection(AssetBundleConfig.Ios, iosBundle.data, iosBundle.key, ""),
             };
             
-            var response = await Request<JBlockStatus>(new RequestHelper
+            var response = await AuthSafeRequest<JBlockStatus>(new RequestHelper
             {
                 Method = "POST",
                 Uri = ApiConfig.URL("v2/toolkits/item/unity-key"),

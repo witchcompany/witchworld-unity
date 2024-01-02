@@ -33,13 +33,18 @@ namespace WitchCompany.Toolkit.Editor.Tool
                 
                 // 번들 빌드
                 var bundles = BuildAssetBundle(platform);
-                Debug.Log("상품 번들 빌드 성공");
                 
                 // 빌드 리포트 작성
                 buildReport.result = JBuildReport.Result.Success;
                 buildReport.buildGroups = new List<JBuildGroup>();
                 foreach (var (target, bundle) in bundles)
                 {
+                    if (bundle == null)
+                    {
+                        buildReport.result = JBuildReport.Result.Failed;
+                        Debug.LogError("상품 번들 빌드 실패");
+                        return null;
+                    }
                     var group = new JBuildGroup
                     {
                         target = target,
@@ -48,6 +53,7 @@ namespace WitchCompany.Toolkit.Editor.Tool
                     group.totalSizeByte = AssetTool.GetFileSizeByte(ExportBundleConfig.PrefabPath);
                 }
                 
+                Debug.Log("상품 번들 빌드 성공");
                 buildReport.BuildEndedAt = DateTime.Now;
             
             }
@@ -110,6 +116,7 @@ namespace WitchCompany.Toolkit.Editor.Tool
             {
                 const BuildAssetBundleOptions option = BuildAssetBundleOptions.ForceRebuildAssetBundle |
                                                        BuildAssetBundleOptions.ChunkBasedCompression;
+                
                 // 폴더 경로
                 var path = Path.Combine(ExportBundleConfig.BundleExportPath, ExportBundleConfig.Prefab.name);
                 if (!Directory.Exists(path)) Directory.CreateDirectory(path);

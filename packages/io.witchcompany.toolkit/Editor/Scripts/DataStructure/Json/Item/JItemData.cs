@@ -6,5 +6,6 @@ namespace WitchCompany.Toolkit.Editor.DataStructure.Item
         public string name;
         public string type;
         public string bodiesToDisable;
+        public int salesItemId;
     }
 }
