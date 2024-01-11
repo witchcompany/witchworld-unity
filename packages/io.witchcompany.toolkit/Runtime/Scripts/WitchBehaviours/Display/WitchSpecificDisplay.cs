@@ -18,7 +18,6 @@ namespace WitchCompany.Toolkit.Module
         [SerializeField] private int salesId;
         [SerializeField] private int salesIdDeb;
         
-        public override int MaximumCount => 20;
         [field: Header("미구매 상태 오브젝트")]
         [field: SerializeField] public GameObject NonObject { get; private set; }
         
