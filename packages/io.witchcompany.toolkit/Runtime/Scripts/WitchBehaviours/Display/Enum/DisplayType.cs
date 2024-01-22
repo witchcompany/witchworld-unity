@@ -6,6 +6,7 @@ namespace WitchCompany.Toolkit.Module
 {
     public enum DisplayType
     {
+        Original,
         Flexible,
         [InspectorName("1:1")]
         Square,
