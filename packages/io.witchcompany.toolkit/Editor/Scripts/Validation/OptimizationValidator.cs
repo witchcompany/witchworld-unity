@@ -37,74 +37,86 @@ namespace WitchCompany.Toolkit.Editor.Validation
             var meshVertex = GetAllMeshes().Item2;
             if (meshVertex > OptimizationConfig.MaxVerts)
             {
-                var error = new ValidationError($"Total Mesh Vertex Count : {meshVertex} / { OptimizationConfig.MaxVerts}\n" +
-                                                $"모든 Vertex의 최대 개수는 {OptimizationConfig.MaxVerts}개 입니다. Scene 내의 Mesh Vertex를 조절해주세요.", ValidationTag.TagMeshVertex);
+                var error = new ValidationError(
+                    $"Total Mesh Vertex Count : {meshVertex} / {OptimizationConfig.MaxVerts}\n" +
+                    $"모든 Vertex의 최대 개수는 {OptimizationConfig.MaxVerts}개 입니다. Scene 내의 Mesh Vertex를 조절해주세요.",
+                    ValidationTag.TagMeshVertex);
                 validationReport.Append(error);
             }
-            
+
             //  라이트맵 검사
             var lightMapSize = GetLightMapMB();
             if (lightMapSize > OptimizationConfig.MaxLightmapMb)
             {
-                var error = new ValidationError($"Total Light Map Size : {lightMapSize} / {OptimizationConfig.MaxLightmapMb} MB\n" +
-                                                $"모든 Light Map의 최대 크기는 {OptimizationConfig.MaxLightmapMb} MB입니다. Scene에 적용된 Light Map을 조절해주세요.", ValidationTag.TagLightmap);
+                var error = new ValidationError(
+                    $"Total Light Map Size : {lightMapSize} / {OptimizationConfig.MaxLightmapMb} MB\n" +
+                    $"모든 Light Map의 최대 크기는 {OptimizationConfig.MaxLightmapMb} MB입니다. Scene에 적용된 Light Map을 조절해주세요.",
+                    ValidationTag.TagLightmap);
                 validationReport.Append(error);
             }
-            
-             // 오디오 클립 검사
+
+            // 오디오 클립 검사
             var findAudioClips = FindAudioClipList();
             var audioClipSize = GetAudioClipMB(findAudioClips);
             if (audioClipSize > OptimizationConfig.MaxAudioClipMb)
             {
-                var error = new ValidationError($"Total Audio Clip Size : {audioClipSize} / {OptimizationConfig.MaxAudioClipMb} MB\n" +
-                                                $"모든 Audio Clip의 최대 크기는 {OptimizationConfig.MaxAudioClipMb} MB입니다. Scene에 적용된 Audio Clip을 조절해주세요.", ValidationTag.TagAudioClip);
+                var error = new ValidationError(
+                    $"Total Audio Clip Size : {audioClipSize} / {OptimizationConfig.MaxAudioClipMb} MB\n" +
+                    $"모든 Audio Clip의 최대 크기는 {OptimizationConfig.MaxAudioClipMb} MB입니다. Scene에 적용된 Audio Clip을 조절해주세요.",
+                    ValidationTag.TagAudioClip);
                 validationReport.Append(error);
             }
+
             GetLargestAudioClipArray(findAudioClips);
-            
+
             //  텍스쳐 검사
             var findTexture = FindTextureList();
             var textureSize = GetTextureMB(findTexture);
             if (textureSize > OptimizationConfig.MaxSharedTextureMb)
             {
-                var error = new ValidationError($"Texture Size : {textureSize} / {OptimizationConfig.MaxSharedTextureMb} MB\n" +
-                                                $"모든 Texture의 최대 크기는 {OptimizationConfig.MaxSharedTextureMb} MB입니다. Scene 내의 Texture를 조절해주세요.", ValidationTag.TagTexture);
+                var error = new ValidationError(
+                    $"Texture Size : {textureSize} / {OptimizationConfig.MaxSharedTextureMb} MB\n" +
+                    $"모든 Texture의 최대 크기는 {OptimizationConfig.MaxSharedTextureMb} MB입니다. Scene 내의 Texture를 조절해주세요.",
+                    ValidationTag.TagTexture);
                 validationReport.Append(error);
             }
+
             GetLargestTextureArray(findTexture);
-            
+
             //  유니크 머티리얼 검사
             var materialCount = GetUniqueMaterialCount();
             if (materialCount > OptimizationConfig.MaxUniqueMaterials)
             {
-                var error = new ValidationError($"Unique Material Count : {materialCount} / {OptimizationConfig.MaxUniqueMaterials}\n" +
-                                                $"Material의 최대 개수는 {OptimizationConfig.MaxUniqueMaterials}개입니다. Scene 내에 적용된 Material의 수를 조절해주세요.", ValidationTag.TagMaterial);
+                var error = new ValidationError(
+                    $"Unique Material Count : {materialCount} / {OptimizationConfig.MaxUniqueMaterials}\n" +
+                    $"Material의 최대 개수는 {OptimizationConfig.MaxUniqueMaterials}개입니다. Scene 내에 적용된 Material의 수를 조절해주세요.",
+                    ValidationTag.TagMaterial);
                 validationReport.Append(error);
             }
-            
+
             /* ValidationCheck 버튼 눌렸을 때만 진행 */
-            validationReport.Append(ValidateIndividualMeshVertex());
+            // validationReport.Append(ValidateIndividualMeshVertex());
             validationReport.Append(ValidateMeshCollider());
             validationReport.Append(ValidateLight());
             validationReport.Append(ValidateReflectionProbe());
             validationReport.Append(ValidationAudioClipPreset(findAudioClips));
             validationReport.Append(ValidationUseCrunchCompression(findTexture));
             // validationReport.Append(ScriptRuleValidator.ValidateMissingComponents(SceneManager.GetActiveScene()));
-            
+
             return validationReport;
         }
-        
+
         /// <summary> 개별 mesh의 vertex 개수 검사 </summary>
-        private static ValidationReport ValidateIndividualMeshVertex() 
+        private static ValidationReport ValidateIndividualMeshVertex()
         {
             var report = new ValidationReport();
 
             var meshes = GetAllMeshes().Item1;
             // var uniqueMeshes = meshes.Distinct();
-            
+
             foreach (var mesh in meshes)
             {
-                if (mesh.Item2.vertexCount > OptimizationConfig.MaxIndividualVerts) 
+                if (mesh.Item2.vertexCount > OptimizationConfig.MaxIndividualVerts)
                 {
                     var error = new ValidationError(
                         $"{mesh.Item1.name}의 {mesh.Item2.name} : {mesh.Item2.vertexCount} / {OptimizationConfig.MaxIndividualVerts}\n" +
@@ -113,9 +125,10 @@ namespace WitchCompany.Toolkit.Editor.Validation
                     report.Append(error);
                 }
             }
+
             return report;
         }
-        
+
         /// <summary> 전체 mesh의 vertex 개수 검사 </summary>
         public static (List<Tuple<GameObject, Mesh>>, int) GetAllMeshes()
         {
@@ -124,7 +137,7 @@ namespace WitchCompany.Toolkit.Editor.Validation
 
             // 모든 게임 오브젝트 중 모든 랜더러를 배열에 저장
             var renderers = GameObject.FindObjectsOfType<Renderer>(true);
-            
+
             // 랜더러 배열 탐색
             foreach (var renderer in renderers)
             {
@@ -149,10 +162,10 @@ namespace WitchCompany.Toolkit.Editor.Validation
                 else if (renderer is BillboardRenderer)
                 {
                     meshes.Add(new Tuple<GameObject, Mesh>(renderer.gameObject, null));
-                    totalVertexCount += 4; 
+                    totalVertexCount += 4;
                 }
             }
-            
+
             return (meshes, totalVertexCount);
         }
 
@@ -161,27 +174,28 @@ namespace WitchCompany.Toolkit.Editor.Validation
         {
             double bytes = 0;
             var lightmaps = LightmapSettings.lightmaps;
-            
+
             foreach (var lightmap in lightmaps)
             {
                 if (lightmap.lightmapColor != null)
                 {
                     long sizeInBytes = Profiler.GetRuntimeMemorySizeLong(lightmap.lightmapColor);
                     bytes += sizeInBytes;
-                    
                 }
+
                 if (lightmap.lightmapDir != null)
                 {
                     long sizeInBytes = Profiler.GetRuntimeMemorySizeLong(lightmap.lightmapDir);
                     bytes += sizeInBytes;
-                    
                 }
+
                 if (lightmap.shadowMask != null)
                 {
                     long sizeInBytes = Profiler.GetRuntimeMemorySizeLong(lightmap.shadowMask);
                     bytes += sizeInBytes;
                 }
             }
+
             return Math.Round(bytes / 1024 / 1024, 3);
         }
 
@@ -191,7 +205,7 @@ namespace WitchCompany.Toolkit.Editor.Validation
             var blockManager = Object.FindObjectOfType<WitchBlockManager>(true);
             if (blockManager == null)
                 return null;
-            
+
             var loadSoundEffects = new List<AudioClip>();
             var soundEffects = Object.FindObjectsOfType<WitchSoundEffect>(true);
 
@@ -216,13 +230,13 @@ namespace WitchCompany.Toolkit.Editor.Validation
         public static double GetAudioClipMB(IEnumerable<AudioClip> audioClipList)
         {
             if (audioClipList == null) return 0;
-            
+
             var foundAudioClips = audioClipList;
-            
+
             // 오디오 클립 사이즈 계산
             var totalBytes = 0L;
-            
-            
+
+
             foreach (var audioClip in foundAudioClips)
             {
                 var sizeInBytes = Profiler.GetRuntimeMemorySizeLong(audioClip);
@@ -242,7 +256,7 @@ namespace WitchCompany.Toolkit.Editor.Validation
             var foundAudioClips = audioClipList;
             var audioClipNames = new[] { "", "", "", "", "" };
             var audioClipSizes = new[] { 0D, 0, 0, 0, 0 };
-            
+
             // 가장 용량이 큰 오디오 클립 로깅
             foreach (var audioClip in foundAudioClips)
             {
@@ -300,7 +314,7 @@ namespace WitchCompany.Toolkit.Editor.Validation
         public static double GetTextureMB(IEnumerable<Texture> textureList)
         {
             var foundTextures = textureList;
-            
+
             // 텍스쳐 사이즈 계산
             var totalBytes = 0L;
             foreach (var texture in foundTextures)
@@ -309,7 +323,7 @@ namespace WitchCompany.Toolkit.Editor.Validation
                 // Debug.Log($"[Texture]{texture.name}: {Math.Round(sizeInBytes/1024f/1024f)}MB", texture);
                 totalBytes += sizeInBytes;
             }
-            
+
             const double mb = 1024D * 1024D;
             return Math.Round(totalBytes / mb, 3);
         }
@@ -318,10 +332,10 @@ namespace WitchCompany.Toolkit.Editor.Validation
         public static void GetLargestTextureArray(IEnumerable<Texture> textureList)
         {
             var foundTextures = textureList;
-            
+
             var textureNames = new[] { "", "", "", "", "" };
             var textureSizes = new[] { 0D, 0, 0, 0, 0 };
-            
+
             // 가장 용량이 큰 텍스쳐 로깅
             foreach (var texture in foundTextures.Distinct())
             {
@@ -350,48 +364,51 @@ namespace WitchCompany.Toolkit.Editor.Validation
         public static int GetUniqueMaterialCount()
         {
             List<Material> materials = new List<Material>();
-            
+
             Renderer[] renderers = GameObject.FindObjectsOfType<Renderer>(true);
-            
+
             foreach (Renderer renderer in renderers)
             {
                 // 머티리얼 리스트에 랜더러의 shardMaterial 추가
                 materials.AddRange(renderer.sharedMaterials);
             }
-            
-            return materials.FindAll(m => m != null).Select(m => m.name).Distinct().Count();;
+
+            return materials.FindAll(m => m != null).Select(m => m.name).Distinct().Count();
+            ;
         }
 
         /// <summary> Mesh Collider를 가진 Object 검출 </summary>
         private static ValidationReport ValidateMeshCollider()
         {
             var report = new ValidationReport();
-            
+
             var meshColliders = Object.FindObjectsOfType<MeshCollider>(true);
             var meshCount = 0;
             foreach (var meshCollider in meshColliders)
             {
                 // 페인트에서 사용중이지 않은 것만 검사
-                if (meshCollider.GetComponent<WitchPaintWall>() == null) 
+                if (meshCollider.GetComponent<WitchPaintWall>() == null)
                     meshCount++;
             }
 
             if (meshCount > OptimizationConfig.MaxMeshColliderCount)
             {
-                var errorMessage = $"Mesh Collider의 최대 개수는 {OptimizationConfig.MaxMeshColliderObject}개입니다." + 
+                var errorMessage = $"Mesh Collider의 최대 개수는 {OptimizationConfig.MaxMeshColliderObject}개입니다." +
                                    $" ({meshColliders.Length} / {OptimizationConfig.MaxMeshColliderObject})\n" +
                                    $"Scene 내에 적용된 Mesh Collider의 수를 조절해주세요.";
                 report.Append(new ValidationError(errorMessage, ValidationTag.TagMeshCollider));
-                
+
                 foreach (var meshCol in meshColliders)
                 {
                     if (meshCol.sharedMesh != null)
                     {
-                        var error = new ValidationError($"Object : {meshCol.gameObject.name}", ValidationTag.TagMeshCollider, meshCol);
+                        var error = new ValidationError($"Object : {meshCol.gameObject.name}",
+                            ValidationTag.TagMeshCollider, meshCol);
                         report.Append(error);
                     }
                 }
             }
+
             return report;
         }
 
@@ -410,9 +427,10 @@ namespace WitchCompany.Toolkit.Editor.Validation
             var etcLights = new List<Light>();
             var disabledBakedLights = new List<Light>();
 
-            const string realTimeLightErrorMsg = "Directional, Point, Spot Light를 제외한 Light의 Mode를 RealTime으로 지정할 수 없습니다.";
+            const string realTimeLightErrorMsg =
+                "Directional, Point, Spot Light를 제외한 Light의 Mode를 RealTime으로 지정할 수 없습니다.";
             const string bakedLightErrorMsg = "Light의 Mode가 Baked인 오브젝트는 비활성화 되어야 합니다.";
-            
+
             // light 검출
             foreach (var light in lights)
             {
@@ -440,21 +458,24 @@ namespace WitchCompany.Toolkit.Editor.Validation
                 }
             }
 
-            LightTypeErrorMessage(report, directionalLights, ValidationTag.TagDirectionalLight,OptimizationConfig.MaxDirectionalLight);
-            LightTypeErrorMessage(report, realtimeLights, ValidationTag.TagRealtimeLight,OptimizationConfig.MaxRealtimeLight);
-            
+            LightTypeErrorMessage(report, directionalLights, ValidationTag.TagDirectionalLight,
+                OptimizationConfig.MaxDirectionalLight);
+            LightTypeErrorMessage(report, realtimeLights, ValidationTag.TagRealtimeLight,
+                OptimizationConfig.MaxRealtimeLight);
+
             LightModeErrorMessage(report, etcLights, ValidationTag.TagEtcRealtimeLight, realTimeLightErrorMsg);
             LightModeErrorMessage(report, disabledBakedLights, ValidationTag.TagBaked, bakedLightErrorMsg);
-            
+
             return report;
         }
 
-        private static void LightTypeErrorMessage(ValidationReport report, List<Light> lights, string tag, uint maxCount)
+        private static void LightTypeErrorMessage(ValidationReport report, List<Light> lights, string tag,
+            uint maxCount)
         {
             if (lights.Count <= maxCount) return;
 
             var newTag = "Light Type : " + tag;
-            
+
             var errorMessage =
                 $"{tag} Light의 최대 개수는 {maxCount}개입니다. " +
                 $"({lights.Count} / {maxCount})\n" +
@@ -464,24 +485,24 @@ namespace WitchCompany.Toolkit.Editor.Validation
             foreach (var light in lights)
                 report.Append(new ValidationError($"Object : {light.name}", newTag, light));
         }
-        
+
         private static void LightModeErrorMessage(ValidationReport report, List<Light> lights, string tag, string msg)
         {
             if (lights.Count <= 0) return;
             var newTag = "Light Mode : " + tag;
-            
+
             report.Append(new ValidationError(msg, newTag));
 
             foreach (var light in lights)
                 report.Append(new ValidationError($"Object : {light.name}", newTag, light));
         }
-        
-        
+
+
         /// <summary> Reflection Probe 용량 검사 </summary>
         private static ValidationReport ValidateReflectionProbe()
         {
             var report = new ValidationReport();
-            
+
             long bytes = 0;
             var reflectionProbes = GameObject.FindObjectsOfType<ReflectionProbe>(true);
             foreach (var probe in reflectionProbes)
@@ -499,10 +520,12 @@ namespace WitchCompany.Toolkit.Editor.Validation
             int mBytes = (int)bytes / 1024 / 1024;
             if (mBytes > OptimizationConfig.MaxReflectionProbeMb)
             {
-                var error = new ValidationError($"Size : {mBytes}/{OptimizationConfig.MaxReflectionProbeMb} MB\n모든 Reflection Probe의 최대 크기는 {OptimizationConfig.MaxReflectionProbeMb}입니다. ", ValidationTag.TagReflectionProbe);
+                var error = new ValidationError(
+                    $"Size : {mBytes}/{OptimizationConfig.MaxReflectionProbeMb} MB\n모든 Reflection Probe의 최대 크기는 {OptimizationConfig.MaxReflectionProbeMb}입니다. ",
+                    ValidationTag.TagReflectionProbe);
                 report.Append(error);
             }
-            
+
             return report;
         }
 
@@ -511,7 +534,7 @@ namespace WitchCompany.Toolkit.Editor.Validation
         {
             var report = new ValidationReport();
             if (audioClipList == null) return report;
-            
+
             var foundAudioClips = audioClipList;
 
             // Audio Clip Preset 적용 확인
@@ -521,10 +544,11 @@ namespace WitchCompany.Toolkit.Editor.Validation
                 var importer = AssetImporter.GetAtPath(path) as AudioImporter;
 
                 if (importer == null) continue;
-                
+
                 // Preset 적용 확인할 if문
                 if (importer.forceToMono == true && importer.loadInBackground == false && importer.ambisonic == false &&
-                    audioClip.loadType == AudioClipLoadType.CompressedInMemory && audioClip.preloadAudioData == true) continue;
+                    audioClip.loadType == AudioClipLoadType.CompressedInMemory &&
+                    audioClip.preloadAudioData == true) continue;
                 if (importer.forceToMono == false && importer.loadInBackground == true && importer.ambisonic == false &&
                     audioClip.loadType == AudioClipLoadType.Streaming) continue;
 
@@ -541,7 +565,7 @@ namespace WitchCompany.Toolkit.Editor.Validation
         {
             var report = new ValidationReport();
             if (textureList == null) return report;
-            
+
             var foundTextures = textureList;
 
             // crunch compress 설정 확인
@@ -552,7 +576,7 @@ namespace WitchCompany.Toolkit.Editor.Validation
 
                 if (importer == null) continue;
                 if (importer.crunchedCompression) continue;
-                
+
                 var error = new ValidationError($"Texture: {texture.name}\nCrunch Compression 기능을 활성화해야 합니다.",
                     ValidationTag.TagTexture, texture);
                 report.Append(error);
