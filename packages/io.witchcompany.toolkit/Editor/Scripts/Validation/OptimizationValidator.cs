@@ -34,16 +34,14 @@ namespace WitchCompany.Toolkit.Editor.Validation
 
             /* Scene Vital */
             // 전체 버텍스 검사
-            var meshVertex = GetAllMeshes().Item2;
-            if (meshVertex > OptimizationConfig.MaxVerts)
-            {
-                var error = new ValidationError(
-                    $"Total Mesh Vertex Count : {meshVertex} / {OptimizationConfig.MaxVerts}\n" +
-                    $"모든 Vertex의 최대 개수는 {OptimizationConfig.MaxVerts}개 입니다. Scene 내의 Mesh Vertex를 조절해주세요.",
-                    ValidationTag.TagMeshVertex);
-                validationReport.Append(error);
-            }
-
+            // var meshVertex = GetAllMeshes().Item2;
+            // if (meshVertex > OptimizationConfig.MaxVerts)
+            // {
+            //     var error = new ValidationError($"Total Mesh Vertex Count : {meshVertex} / { OptimizationConfig.MaxVerts}\n" +
+            //                                     $"모든 Vertex의 최대 개수는 {OptimizationConfig.MaxVerts}개 입니다. Scene 내의 Mesh Vertex를 조절해주세요.", ValidationTag.TagMeshVertex);
+            //     validationReport.Append(error);
+            // }
+            
             //  라이트맵 검사
             var lightMapSize = GetLightMapMB();
             if (lightMapSize > OptimizationConfig.MaxLightmapMb)
