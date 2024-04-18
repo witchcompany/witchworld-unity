@@ -96,6 +96,8 @@ namespace WitchCompany.Toolkit.Editor.Validation
             "RigBuilder",
             "Rig",
             "ChainIKConstraint",
+            
+            "MeshCombiner",
         };
         public static ValidationReport ValidationCheck()
         {
