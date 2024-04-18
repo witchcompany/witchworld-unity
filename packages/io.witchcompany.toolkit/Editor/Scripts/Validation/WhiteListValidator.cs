@@ -97,7 +97,9 @@ namespace WitchCompany.Toolkit.Editor.Validation
             "Rig",
             "ChainIKConstraint",
             
+            // 메시 최적화
             "MeshCombiner",
+            "LODGroup",
         };
         public static ValidationReport ValidationCheck()
         {
