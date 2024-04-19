@@ -11,7 +11,7 @@ namespace WitchCompany.Toolkit.Editor.Configs
         public static readonly string BundleExportPath = Path.Combine(".", "WitchToolkit", BundleString); 
         
         // 검사
-        public const uint MaxProductSizeKb = 10;
+        public const uint MaxProductSizeKb = 30;
 
         public static string PrefabPath => Prefab != null ? AssetDatabase.GetAssetPath(Prefab) : "";
         
