@@ -50,7 +50,8 @@ namespace WitchCompany.Toolkit.Module
         {
             All = 0,
             LoginUser = 1,
-            BlockOwnerOnly = 2
+            BlockOwnerOnly = 2,
+            Admin = 3
         }
 
 #if UNITY_EDITOR
