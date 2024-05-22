@@ -133,7 +133,7 @@ namespace WitchCompany.Toolkit.Module
                 if (type == typeof(WitchPaintWall))
                 {
                     var paintWall = (WitchPaintWall) behaviour;
-                    if (paintWall.DrawPermission != WitchPaintWall.Permission.BlockOwnerOnly)
+                    if (paintWall.DrawPermission == WitchPaintWall.Permission.All)
                     {
                         publicPaintCount++;
                         paintWall.Editor_SetInvalid(publicPaintCount > 1 );
